@@ -1,6 +1,6 @@
 # API Documentation
 
-This document describes the RESTful API endpoints provided by the Konsolidator framework and its modules.
+This document describes the RESTful API endpoints provided by the WebCoreGo framework and its modules.
 
 ## Table of Contents
 
@@ -47,7 +47,7 @@ Returns information about the application and loaded modules.
 **Response:**
 ```json
 {
-  "name": "Konsolidator API",
+  "name": "WebCoreGo API",
   "version": "1.0.0",
   "environment": "development",
   "modules": [

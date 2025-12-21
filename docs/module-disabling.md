@@ -1,6 +1,6 @@
 # Module Disabling Feature
 
-This document describes how to disable specific modules in the Konsolidator framework using the `disabled` configuration option.
+This document describes how to disable specific modules in the WebCoreGo framework using the `disabled` configuration option.
 
 ## Overview
 

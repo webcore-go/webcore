@@ -1,6 +1,6 @@
 # Authentication Documentation
 
-This document describes the authentication system in Konsolidator, which supports both JWT and API key authentication methods.
+This document describes the authentication system in WebCoreGo, which supports both JWT and API key authentication methods.
 
 ## Overview
 

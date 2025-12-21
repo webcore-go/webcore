@@ -1,10 +1,10 @@
 # Module Development Guide
 
-This guide explains how to develop modules for the Konsolidator framework.
+This guide explains how to develop modules for the WebCoreGo framework.
 
 ## Understanding the Module Architecture
 
-In Konsolidator, modules are self-contained units of functionality that can be developed, tested, and deployed independently. Each module follows a clean architecture pattern:
+In WebCoreGo, modules are self-contained units of functionality that can be developed, tested, and deployed independently. Each module follows a clean architecture pattern:
 
 ```
 Module
@@ -791,7 +791,7 @@ func (m *Module) Init(app *fiber.App, deps *module.Context) error {
 
 ## Conclusion
 
-Developing modules for Konsolidator allows you to build scalable, maintainable applications with clear separation of concerns. Follow these guidelines to create high-quality modules that integrate seamlessly with the framework.
+Developing modules for WebCoreGo allows you to build scalable, maintainable applications with clear separation of concerns. Follow these guidelines to create high-quality modules that integrate seamlessly with the framework.
 
 Remember to:
 - Keep modules focused and independent

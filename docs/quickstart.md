@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-This guide will help you get started with the Konsolidator framework in minutes.
+This guide will help you get started with the WebCoreGo framework in minutes.
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ This guide will help you get started with the Konsolidator framework in minutes.
 
 ```bash
 git clone <repository-url>
-cd konsolidator-pkg
+cd webcore-go
 ```
 
 ### 2. Install Dependencies
@@ -68,7 +68,7 @@ docker-compose up -d
 This will start:
 - PostgreSQL database
 - Redis cache
-- The Konsolidator API application
+- The WebCoreGo API application
 
 ### 2. Run Migrations
 
@@ -142,7 +142,7 @@ curl http://localhost:3000/info
 Response:
 ```json
 {
-  "name": "Konsolidator API",
+  "name": "WebCoreGo API",
   "version": "1.0.0",
   "modules": [
     {
@@ -298,4 +298,4 @@ This project is licensed under the MIT License. See the [LICENSE](../LICENSE) fi
 
 ---
 
-Happy coding with Konsolidator! 🚀
+Happy coding with WebCoreGo! 🚀

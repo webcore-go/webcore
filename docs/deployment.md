@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers how to deploy the Konsolidator API in various environments.
+This guide covers how to deploy the WebCoreGo API in various environments.
 
 ## Table of Contents
 
@@ -30,7 +30,7 @@ Before deploying, ensure you have:
 
 ```bash
 git clone <repository-url>
-cd konsolidator-pkg
+cd webcore-go
 ```
 
 ### 2. Install Dependencies
@@ -976,7 +976,7 @@ For deployment support:
 
 ## Conclusion
 
-This deployment guide provides comprehensive instructions for deploying the Konsolidator API in various environments. Always follow best practices for security, performance, and reliability in production deployments.
+This deployment guide provides comprehensive instructions for deploying the WebCoreGo API in various environments. Always follow best practices for security, performance, and reliability in production deployments.
 
 Remember to:
 - Use proper secrets management

@@ -1,6 +1,6 @@
 # CORS Configuration Documentation
 
-This document describes how to configure Cross-Origin Resource Sharing (CORS) in the Konsolidator framework.
+This document describes how to configure Cross-Origin Resource Sharing (CORS) in the WebCoreGo framework.
 
 ## Overview
 

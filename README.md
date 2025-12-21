@@ -1,20 +1,24 @@
-# Konsolidator - Pluggable API Framework
+# WebCoreGo - Pluggable API Framework
 
 A RESTful API framework built with Go and Fiber featuring a pluggable architecture that separates infrastructure from business logic.
 
 ## 🏗️ Architecture Overview
 
-The Konsolidator framework follows a **Pluggable Architecture** pattern that allows teams to work independently on isolated modules:
+The WebCoreGo framework follows a **Pluggable Architecture** pattern that allows teams to work independently on isolated modules:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │              Main Repository (repo-utama-api)               │
 ├─────────────────────────────────────────────────────────────┤
-│  Core Engine     │  Global Middleware  │  Shared Libraries  │
-│  - main.go       │  - auth.go          │  - database.go     │
-│  - app.go        │  - logging.go       │  - redis.go        │
-│  - config.go     │  - rate_limit.go    │  - utils.go        │
-│                  │  - middleware.go    │                    │
+│  WebCore Engine  │  Global Middleware  │  Shared Libraries  │
+│  - config        │  - auth.go          │  - database:       │
+|  - logger        |  - logging.go       |     - postgres     |
+|  - DI:           |  - rate_limit.go    |     - mysql        |
+|     - libraries  |                     |     - sqlite       |
+|     - modules    |                     |     - mongo        |
+│  - middleware    │                     │  - redis           │
+│  - helper        │                     │  - kafka           │
+│                  │                     │  - pubsub          │
 ├─────────────────────────────────────────────────────────────┤
 │                    Central Registry                         │
 │                  (Module Management & DI)                   │
@@ -25,9 +29,10 @@ The Konsolidator framework follows a **Pluggable Architecture** pattern that all
 │                 (Separate Git Repositories)                 │
 ├─────────────────────────────────────────────────────────────┤
 │  Module A        │  Module B          │  Module C           │
-│  - handler.go    │  - handler.go      │  - handler.go       │
-│  - service.go    │  - service.go      │  - service.go       │
-│  - repository.go │  - repository.go   │  - repository.go    │
+│  - config        │  - config          │  - config           │
+│  - handler       │  - handler         │  - handler          │
+│  - service       │  - service         │  - service          │
+│  - repository    │  - repository      │  - repository       │
 │  - module.go     │  - module.go       │  - module.go        │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -52,7 +57,7 @@ The Konsolidator framework follows a **Pluggable Architecture** pattern that all
 ## 📁 Project Structure
 
 ```
-konsolidator-pkg/
+webcore-go/
 ├── main.go                          # Application entry point
 ├── go.mod                           # Go module definition
 ├── go.sum                           # Go module checksums
@@ -106,7 +111,7 @@ konsolidator-pkg/
 1. **Clone the repository**:
 ```bash
 git clone <repository-url>
-cd konsolidator-pkg
+cd webcore-go
 ```
 
 2. **Install dependencies**:
