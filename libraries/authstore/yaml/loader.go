@@ -13,10 +13,15 @@ import (
 )
 
 type YamlLoader struct {
+	name string
+}
+
+func (a *YamlLoader) SetClassName(name string) {
+	a.name = name
 }
 
 func (a *YamlLoader) ClassName() string {
-	return "AuthStore"
+	return a.name
 }
 
 func (l *YamlLoader) Init(args ...any) (loader.Library, error) {

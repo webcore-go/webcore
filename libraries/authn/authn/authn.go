@@ -38,16 +38,17 @@ func (a *AuthN) Install(args ...any) error {
 
 	context := args[0].(*core.AppContext)
 	libmanager := core.Instance().LibraryManager
-	lName := "auth.store:" + context.Config.Auth.Store
-	loader, ok := libmanager.GetLoader(lName)
-	if !ok {
-		return fmt.Errorf("LibraryLoader %s tidak ditemukan", lName)
+	// lName := "authstorage:" + context.Config.Auth.Store
+	// loader, ok := libmanager.GetLoader(lName)
+	loader, e := context.GetDefaultLibraryLoader("authstorage")
+	if e != nil {
+		return e
 	}
 
 	// Initialize module components
 	library, err := libmanager.LoadSingletonFromLoader(loader, context, config)
 	if err != nil {
-		return fmt.Errorf("Library AuthStore %s tidak ditemukan %v", lName, err)
+		return fmt.Errorf("Library AuthStore tidak ditemukan %v", err)
 	}
 
 	authstore := library.(auth.IAuthStore)
@@ -79,30 +80,30 @@ func (a *AuthN) Install(args ...any) error {
 func (a *AuthN) GetAuthenticatonHandler() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		if err := a.Validator.ValidateKey(c); err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(helper.APIError{
+			return c.Status(fiber.StatusUnauthorized).JSON(helper.WebResponse(&helper.Response{
 				HttpCode:  fiber.StatusUnauthorized,
 				ErrorCode: 2,
 				ErrorName: "UNAUTHORIZED",
 				Message:   err.Error(),
-			})
+			}))
 		}
 
 		if err := a.Authenticator.Check(c); err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(helper.APIError{
+			return c.Status(fiber.StatusUnauthorized).JSON(helper.WebResponse(&helper.Response{
 				HttpCode:  fiber.StatusUnauthorized,
 				ErrorCode: 2,
 				ErrorName: "UNAUTHORIZED",
 				Message:   err.Error(),
-			})
+			}))
 		}
 
 		if err := a.Authorizer.Check(a.Authenticator.Loader.GetLoadedUser(), c.Method(), c.Path()); err != nil {
-			return c.Status(fiber.StatusUnauthorized).JSON(helper.APIError{
+			return c.Status(fiber.StatusUnauthorized).JSON(helper.WebResponse(&helper.Response{
 				HttpCode:  fiber.StatusUnauthorized,
 				ErrorCode: 2,
 				ErrorName: "UNAUTHORIZED",
 				Message:   err.Error(),
-			})
+			}))
 		}
 
 		return c.Next()

@@ -8,11 +8,15 @@ import (
 )
 
 type PostgresLoader struct {
-	// DB *sql.SQLDatabase
+	name string
+}
+
+func (a *PostgresLoader) SetClassName(name string) {
+	a.name = name
 }
 
 func (a *PostgresLoader) ClassName() string {
-	return "SQLDatabase"
+	return a.name
 }
 
 func (l *PostgresLoader) Init(args ...any) (loader.Library, error) {

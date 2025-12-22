@@ -13,10 +13,15 @@ import (
 )
 
 type BasicAuthLoader struct {
+	name string
+}
+
+func (a *BasicAuthLoader) SetClassName(name string) {
+	a.name = name
 }
 
 func (a *BasicAuthLoader) ClassName() string {
-	return "AuthN"
+	return a.name
 }
 
 func (a *BasicAuthLoader) Init(args ...any) (loader.Library, error) {

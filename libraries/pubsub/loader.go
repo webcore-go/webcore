@@ -8,10 +8,15 @@ import (
 )
 
 type PubSubLoader struct {
+	name string
 }
 
-func (l *PubSubLoader) ClassName() string {
-	return "PubSub"
+func (a *PubSubLoader) SetClassName(name string) {
+	a.name = name
+}
+
+func (a *PubSubLoader) ClassName() string {
+	return a.name
 }
 
 func (l *PubSubLoader) Init(args ...any) (loader.Library, error) {

@@ -12,10 +12,15 @@ import (
 )
 
 type ApiKeyLoader struct {
+	name string
+}
+
+func (a *ApiKeyLoader) SetClassName(name string) {
+	a.name = name
 }
 
 func (a *ApiKeyLoader) ClassName() string {
-	return "AuthN"
+	return a.name
 }
 
 func (a *ApiKeyLoader) Init(args ...any) (loader.Library, error) {

@@ -8,11 +8,15 @@ import (
 )
 
 type SqliteLoader struct {
-	// DB *sql.SQLDatabase
+	name string
+}
+
+func (a *SqliteLoader) SetClassName(name string) {
+	a.name = name
 }
 
 func (a *SqliteLoader) ClassName() string {
-	return "SQLDatabase"
+	return a.name
 }
 
 func (l *SqliteLoader) Init(args ...any) (loader.Library, error) {

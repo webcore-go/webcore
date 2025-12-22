@@ -44,11 +44,12 @@ func (m *MongoDatabase) GetName() string {
 func (d *MongoDatabase) Install(args ...any) error {
 	d.context = args[0].(context.Context)
 	d.config = args[1].(config.DatabaseConfig)
-	client := args[2].(*mongo.Client)
-
-	if client != nil {
-		// wrap existing connection
-		d.conn = client
+	if len(args) > 2 {
+		client := args[2].(*mongo.Client)
+		if client != nil {
+			// wrap existing connection
+			d.conn = client
+		}
 	}
 
 	d.collections = make(map[string]*mongo.Collection)
@@ -56,6 +57,11 @@ func (d *MongoDatabase) Install(args ...any) error {
 }
 
 func (m *MongoDatabase) Connect() error {
+	// Connection is already established in Install
+	if m.conn != nil {
+		return nil
+	}
+
 	driver := m.config.Driver
 
 	// Build connection string with authentication
@@ -120,6 +126,7 @@ func (m *MongoDatabase) Connect() error {
 		return err
 	}
 
+	m.conn = client
 	slog.Info("Successfully connected to MongoDB")
 	return nil
 }
@@ -385,18 +392,20 @@ func copyToBsonMap(src loader.DbMap, dst *bson.M) any {
 			copyToBsonMap(v.(loader.DbMap), &m)
 			(*dst)[k] = m
 		case reflect.Slice:
-			arr := v.([]any)
-			for i, item := range arr {
+			arr := reflect.ValueOf(v)
+			result := make([]any, arr.Len())
+			for i := 0; i < arr.Len(); i++ {
+				item := arr.Index(i).Interface()
 				iType := reflect.TypeOf(item)
 				if iType.Kind() == reflect.Map {
 					m := bson.M{}
 					copyToBsonMap(item.(loader.DbMap), &m)
-					arr[i] = m
+					result[i] = m
 				} else {
-					arr[i] = item
+					result[i] = item
 				}
 			}
-			(*dst)[k] = arr
+			(*dst)[k] = result
 		default:
 			(*dst)[k] = v
 		}

@@ -7,10 +7,15 @@ import (
 
 type RedisLoader struct {
 	Redis *Redis
+	name  string
 }
 
-func (l *RedisLoader) ClassName() string {
-	return "Redis"
+func (a *RedisLoader) SetClassName(name string) {
+	a.name = name
+}
+
+func (a *RedisLoader) ClassName() string {
+	return a.name
 }
 
 func (l *RedisLoader) Init(args ...any) (loader.Library, error) {

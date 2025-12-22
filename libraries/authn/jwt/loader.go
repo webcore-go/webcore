@@ -13,10 +13,15 @@ import (
 )
 
 type JWTAuthLoader struct {
+	name string
+}
+
+func (a *JWTAuthLoader) SetClassName(name string) {
+	a.name = name
 }
 
 func (a *JWTAuthLoader) ClassName() string {
-	return "AuthN"
+	return a.name
 }
 
 func (a *JWTAuthLoader) Init(args ...any) (loader.Library, error) {

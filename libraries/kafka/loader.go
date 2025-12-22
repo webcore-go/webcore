@@ -5,10 +5,16 @@ import (
 	"github.com/semanggilab/webcore-go/app/loader"
 )
 
-type KafkaConsumerLoader struct{}
+type KafkaConsumerLoader struct {
+	name string
+}
 
-func (l *KafkaConsumerLoader) ClassName() string {
-	return "KafkaConsumer"
+func (a *KafkaConsumerLoader) SetClassName(name string) {
+	a.name = name
+}
+
+func (a *KafkaConsumerLoader) ClassName() string {
+	return a.name
 }
 
 func (l *KafkaConsumerLoader) Init(args ...any) (loader.Library, error) {
@@ -29,10 +35,16 @@ func (l *KafkaConsumerLoader) Init(args ...any) (loader.Library, error) {
 	return kc, nil
 }
 
-type KafkaProducerLoader struct{}
+type KafkaProducerLoader struct {
+	name string
+}
 
-func (l *KafkaProducerLoader) ClassName() string {
-	return "KafkaProducer"
+func (a *KafkaProducerLoader) SetClassName(name string) {
+	a.name = name
+}
+
+func (a *KafkaProducerLoader) ClassName() string {
+	return a.name
 }
 
 func (l *KafkaProducerLoader) Init(args ...any) (loader.Library, error) {

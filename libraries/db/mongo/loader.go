@@ -5,10 +5,15 @@ import (
 )
 
 type MongoLoader struct {
+	name string
+}
+
+func (a *MongoLoader) SetClassName(name string) {
+	a.name = name
 }
 
 func (a *MongoLoader) ClassName() string {
-	return "MongoDatabase"
+	return a.name
 }
 
 func (l *MongoLoader) Init(args ...any) (loader.Library, error) {
