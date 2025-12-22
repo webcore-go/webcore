@@ -57,52 +57,79 @@ The WebCoreGo framework follows a **Pluggable Architecture** pattern that allows
 ## 📁 Project Structure
 
 ```
-webcore-go/
-├── main.go                          # Application entry point
-├── go.mod                           # Go module definition
-├── go.sum                           # Go module checksums
-├── config/
-│   └── config.yaml                  # Configuration file
-├── internal/
-│   ├── app/                         # Core application logic
-│   │   └── app.go                   # Application main logic
-│   ├── config/                      # Configuration management
-│   │   └── config.go                # Configuration loading
-│   ├── middleware/                  # Global middleware
-│   │   ├── auth.go                  # Authentication middleware
-│   │   ├── logging.go               # Logging middleware
-│   │   ├── rate_limit.go            # Rate limiting middleware
-│   │   └── middleware.go            # Middleware registration
-│   ├── registry/                    # Central registry system
-│   │   ├── module.go               # Central registry implementation
-│   │   └── loader.go                # Module loader implementation
-│   └── shared/                      # Shared libraries and utilities
-│       ├── database.go               # Database connection pooling
-│       ├── redis.go                  # Redis client management
-│       ├── shared.go                 # Shared configuration
-│       └── utils.go                  # Utility functions
-├── packages/
-│   └── module-a/                     # Example module
+webcore-go/                          
+├── webcore/
+│   ├── go.mod                       # Go module definition
+│   ├── go.sum                       # Go module checksums
+│   ├── main.go                      # Application entry point
+│   ├── deps/                        # Application modules and dependencies Management
+│   │   ├── libraries.go             # List of library dependencies
+│   │   └── packages.go              # List of module dependencies
+│   └── app/                         # Core application logic
+│       ├── config/                      # Configuration management
+│       │   └── config.go                # Configuration loading
+│       ├── core/                        # Core logic
+│       │   └── app.go                   # Application main logic
+│       │   ├── module.go                # Central registry implementation
+│       │   └── loader.go                # Module loader implementation
+│       ├── helper/                      # Some helper functions
+│       │   ├── api.go                   # API
+│       │   ├── json.go                  # Override default JSON Encoding/Decoding using goccy-json
+│       │   ├── log.go                   # Log
+│       │   ├── string.go                # String
+│       │   ├── task.go                  # Task
+│       │   └── utils.go                 # Some utility functions
+│       ├── loader/                      # Dependency Injection interface
+│       │   └── conn.go                  # Dependency Injection interface for Database, Kafka, Redis, PubSub etc
+│       ├── logger/                      # Logger definition
+│       │   └── logger.go                # Override default logger implementation
+│       └── middleware/                  # Global middleware
+│           ├── auth.go                  # Authentication middleware
+│           ├── logging.go               # Logging middleware
+│           ├── rate_limit.go            # Rate limiting middleware
+│           └── middleware.go            # Middleware registration
+├── libraries/                       # Global Shared Libraries and implement DI interface for Database, Kafka, Redis, PubSub etc  
+│   ├── db/                          # Database
+│   │   ├── mongo                    # MongoDB database implementation
+│   │   ├── sql                      # Relational database abstraction
+│   │   ├── mysql                    # MySQL database implementation
+│   │   ├── sqlite                   # SQLite database implementation
+│   │   └── postgres                 # PostgreSQL database implementation
+│   ├── kafka/                       # Kafka
+│   ├── pubsub/                      # PubSub
+│   └── redis/                       # Redis
+├── modules/
+│   └── module-a/                    # Example module
+│       ├── go.mod                   # Go module definition
 │       ├── module.go                # Module implementation
+│       ├── config/
+│       │   └── config.go            # Module configuration
 │       ├── handler/
 │       │   └── handler.go           # HTTP handlers
+│       ├── model/
+│       │   ├── model1.go            # Model
+│       │   └── model2.go            # Model
 │       ├── service/
-│       │   └── service.go            # Business logic
+│       │   └── service.go           # Business logic
 │       └── repository/
 │           └── repository.go        # Data access layer
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml                   # CI pipeline
 │       └── cd.yml                   # CD pipeline
-├── Dockerfile                        # Docker configuration
-└── docker-compose.yml                # Docker Compose configuration
+├── go.work                          # Go workspace configuration
+├── go.work.sum                      # Go workspace configuration checksum
+├── config.yaml                      # Configuration file
+├── Dockerfile                       # Docker configuration
+├── docker-compose.yml               # Docker Compose configuration
+└── run.sh                           # script to run go webcore/main.go
 ```
 
 ## 🛠️ Installation
 
 ### Prerequisites
 - Go 1.19 or higher
-- PostgreSQL (for database)
+- PostgreSQL, MySQL, SQLite or MongoDB (for database)
 - Redis (optional, for caching)
 - Docker (optional, for containerization)
 
@@ -121,8 +148,8 @@ go mod tidy
 
 3. **Set up configuration**:
 ```bash
-cp config/config.yaml.example config/config.yaml
-# Edit config/config.yaml with your settings
+cp config.yaml.example config.yaml
+# Edit config.yaml with your settings
 ```
 
 4. **Set up database** (optional):
@@ -136,10 +163,14 @@ go run main.go migrate
 
 5. **Run the application**:
 ```bash
-go run main.go
+go run webcore/main.go
+```
+Or use run.sh from root directory
+```bash
+./run.sh
 ```
 
-The application will start on `http://localhost:3000`
+The application will start on `http://localhost:7272`
 
 ### Using Docker
 
@@ -151,7 +182,7 @@ docker-compose up -d
 2. **Build manually**:
 ```bash
 docker build -t konsolidator .
-docker run -p 3000:3000 konsolidator
+docker run -p 7272:7272 konsolidator
 ```
 
 ## 📖 Configuration
@@ -166,7 +197,7 @@ app:
 
 server:
   host: "0.0.0.0"
-  port: 3000
+  port: 7272
   read_timeout: 30
   write_timeout: 30
 
@@ -200,6 +231,7 @@ modules:
 
 1. **Create a new repository** for your module:
 ```bash
+cd modules
 git clone <module-template> module-b
 cd module-b
 ```
@@ -225,9 +257,22 @@ func (m *Module) Version() string {
     return "1.0.0"
 }
 
+// Dependencies returns the dependencies of the module to other modules
+func (m *Module) Dependencies() []string {
+	return []string{}
+}
+
 func (m *Module) Init(app *fiber.App, deps *module.Context) error {
     // Initialize your module
     return nil
+}
+
+func (m *Module) Destroy() error {
+	return nil
+}
+
+func (m *Module) Config() appConfig.Configurable {
+	return m.config
 }
 
 func (m *Module) Routes() []*fiber.Route {
@@ -251,11 +296,14 @@ func (m *Module) Repositories() map[string]any {
 }
 ```
 
-3. **Register your module** in the main application:
+3. **Register your module** in the APP_PACKAGES located in deps/packages.go:
 ```go
-// In main.go or where modules are registered
-module := moduleb.NewModule()
-manager.Register(module)
+var APP_PACKAGES = []core.Module{
+	modulea.NewModule(),
+
+// Add your packages here
+	moduleb.NewModule(), // your module
+}
 ```
 
 ### Module Structure
@@ -264,16 +312,19 @@ Each module should follow this structure:
 
 ```
 module-b/
-├── module.go              # Module implementation
+├── go.mod                   # Go module definition
+├── module.go                # Module implementation
+├── config/
+│   └── config.go            # Module configuration
 ├── handler/
-│   └── handler.go          # HTTP handlers
+│   └── handler.go           # HTTP handlers
+├── model/
+│   ├── model1.go            # Model
+│   └── model2.go            # Model
 ├── service/
-│   └── service.go          # Business logic
-├── repository/
-│   └── repository.go      # Data access layer
-├── models/
-│   └── models.go          # Data models
-└── go.mod                 # Module dependencies
+│   └── service.go           # Business logic
+└── repository/
+    └── repository.go        # Data access layer
 ```
 
 ### Module Dependencies
@@ -282,14 +333,12 @@ Modules can depend on shared libraries:
 
 ```go
 import (
-    "github.com/semanggilab/webcore-go/app/shared"
-    "github.com/semanggilab/webcore-go/packages/module-a/repository"
+    "github.com/semanggilab/webcore-go/modules/module-a/repository"
 )
 
 type Module struct {
-    db     *shared.Database
-    redis  *shared.Redis
-    logger *shared.Logger
+    db     *loader.IDatabase
+    redis  *loader.IRedis
 }
 
 func (m *Module) Init(app *fiber.App, deps *module.Context) error {
@@ -379,7 +428,7 @@ go build -ldflags="-s -w" -o konsolidator main.go
 docker build -t konsolidator:latest .
 
 # Run container
-docker run -d -p 3000:3000 konsolidator:latest
+docker run -d -p 7272:7272 konsolidator:latest
 ```
 
 ### Kubernetes Deployment
@@ -405,7 +454,7 @@ spec:
       - name: konsolidator
         image: konsolidator:latest
         ports:
-        - containerPort: 3000
+        - containerPort: 7272
         env:
         - name: DB_HOST
           value: "postgres-service"

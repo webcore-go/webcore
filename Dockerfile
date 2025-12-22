@@ -35,7 +35,7 @@ COPY --from=builder /app/main .
 COPY --from=builder /app/config ./config
 
 # Expose port
-EXPOSE 3000
+EXPOSE 7272
 
 # Run the application
 CMD ["./main"]

@@ -1,14 +1,14 @@
-version: '3.8'
+version: "3.8"
 
 services:
   konsolidator-api:
     build: .
     ports:
-      - "3000:3000"
+      - "7272:7272"
     environment:
       - APP_ENV=development
       - SERVER_HOST=0.0.0.0
-      - SERVER_PORT=3000
+      - SERVER_PORT=7272
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=konsolidator

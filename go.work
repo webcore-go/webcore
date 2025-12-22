@@ -1,15 +1,22 @@
 go 1.25.0
 
 use (
-	./webcore
-	// ./libraries/db/mongo
-	// ./libraries/db/mysql
+	./libraries/authn/apikey
+	./libraries/authn/authn
+	./libraries/authn/basic
+	./libraries/authn/jwt
+	./libraries/authstore/store
+	./libraries/authstore/yaml
+	./libraries/db/mongo
+	./libraries/db/mysql
 	./libraries/db/postgres
+	./libraries/db/sql
+	./libraries/db/sqlite
+	./libraries/kafka
 	./libraries/pubsub
 	./libraries/redis
-	./libraries/db/sql
-	// ./libraries/sqlite
-	./libraries/kafka
 	./modules/modulea
 	./modules/tb
+	./modules/tb-pubsub
+	./webcore
 )
