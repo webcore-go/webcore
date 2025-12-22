@@ -837,7 +837,7 @@ func TestHandler_GetItems(t *testing.T) {
 Your module should inherit configuration from `config.ModuleConfig` to ensure proper configuration management. Here's how to implement it:
 
 ```go
-// config/config.go
+// config.go
 package config
 
 import (
@@ -1067,7 +1067,7 @@ err := centralRegistry.Register(module)
 
 ### Debug Mode
 
-Enable debug mode for detailed logging edit `config/config.yaml`:
+Enable debug mode for detailed logging edit `config.yaml`:
 
 ```yaml
 app:
