@@ -9,6 +9,7 @@ import (
 )
 
 type LibraryLoader interface {
+	ClassName() string
 	Init(args ...any) (loader.Library, error)
 }
 
@@ -75,7 +76,6 @@ func (lm *LibraryManager) GetLibrary(name string, singleton bool, key *string) (
 }
 
 func (lm *LibraryManager) LoadFromLoader(load LibraryLoader, name string, singleton bool, key *string, args ...any) (loader.Library, error) {
-	logger.DebugJson("ARGS LoadFromLoader: ", args)
 	// Check if library type exists
 	libMap, ok := lm.Libraries[name]
 	if !ok {
@@ -99,6 +99,7 @@ func (lm *LibraryManager) LoadFromLoader(load LibraryLoader, name string, single
 		}
 
 		lm.Libraries[name] = libMap
+		// logger.Debug("LoadFromLoader: Map BARU untuk", "name", name)
 		return library, nil
 	}
 
@@ -122,24 +123,25 @@ func (lm *LibraryManager) LoadFromLoader(load LibraryLoader, name string, single
 	// Store instance
 	if singleton {
 		lm.Libraries[name]["default"] = library
+		// logger.Debug("LoadFromLoader: Buat Instance BARU untuk", "name", name, "key", "default")
 	} else {
 		if key == nil {
 			d := "default"
 			key = &d
 		}
 		lm.Libraries[name][*key] = library
+		// logger.Debug("LoadFromLoader: Buat Instance BARU untuk", "name", name, "key", *key)
 	}
 
 	return library, nil
 }
 
-func (lm *LibraryManager) LoadSingletonFromLoader(loader LibraryLoader, name string, args ...any) (loader.Library, error) {
-	logger.DebugJson("ARGS LoadSingletonFromLoader: ", args)
-	return lm.LoadFromLoader(loader, name, true, nil, args...)
+func (lm *LibraryManager) LoadSingletonFromLoader(loader LibraryLoader, args ...any) (loader.Library, error) {
+	return lm.LoadFromLoader(loader, loader.ClassName(), true, nil, args...)
 }
 
-func (lm *LibraryManager) LoadInstanceFromLoader(loader LibraryLoader, name string, key string, args ...any) (loader.Library, error) {
-	return lm.LoadFromLoader(loader, name, false, &key, args...)
+func (lm *LibraryManager) LoadInstanceFromLoader(loader LibraryLoader, key string, args ...any) (loader.Library, error) {
+	return lm.LoadFromLoader(loader, loader.ClassName(), false, &key, args...)
 }
 
 func (lm *LibraryManager) LoadSingleton(libType reflect.Type, args ...any) (loader.Library, error) {

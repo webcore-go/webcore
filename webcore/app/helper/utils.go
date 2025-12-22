@@ -1,7 +1,6 @@
 package helper
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"strings"
@@ -14,7 +13,7 @@ func StringPtr(s string) *string {
 
 // ToJSON converts an interface to JSON string
 func ToJSON(v any) (string, error) {
-	data, err := json.Marshal(v)
+	data, err := JSONMarshal(v)
 	if err != nil {
 		return "", err
 	}
@@ -22,7 +21,7 @@ func ToJSON(v any) (string, error) {
 }
 
 func ToIndentJSON(v any) (string, error) {
-	data, err := json.MarshalIndent(v, "", "  ")
+	data, err := JSONMarshalIndent(v, "", "  ")
 	if err != nil {
 		return "", err
 	}
@@ -30,7 +29,7 @@ func ToIndentJSON(v any) (string, error) {
 }
 
 func ToLogJSON(v any) string {
-	data, err := json.MarshalIndent(v, "", "  ")
+	data, err := JSONMarshalIndent(v, "", "  ")
 	if err != nil {
 		return "<error marshal to json>"
 	}
@@ -39,7 +38,7 @@ func ToLogJSON(v any) string {
 
 // FromJSON converts a JSON string to an interface
 func FromJSON(jsonStr string, v any) error {
-	return json.Unmarshal([]byte(jsonStr), v)
+	return JSONUnmarshal([]byte(jsonStr), v)
 }
 
 // StructToMap converts a struct to a map

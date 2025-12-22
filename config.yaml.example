@@ -12,7 +12,7 @@ app:
 
   # logging settings
   logging:
-    level: debug
+    level: info
     format: "${time} | ${status} | ${latency} | ${ip} | ${method} | ${path} | ${error}\n"
     output: stdout
 
@@ -38,7 +38,7 @@ app:
     allow_credentials: true
     expose_headers:
       - "Content-Length"
-    max_age: 24h # 24 hours
+    max_age: 24h  # 24 hours
 
   # API rate limiting settings per minute
   rate_limit:
@@ -59,11 +59,9 @@ server:
   write_timeout: 30s
 
 auth:
-  control: RBAC
-  store: yaml # yaml, db
-  type: apikey # Options: "jwt", "apikey", "basic"
+  type: "jwt"  # Options: "jwt", "apikey"
   secret_key: your-secret-key-here
-  expires_in: 86400 # 24 hours in seconds
+  expires_in: 86400  # 24 hours in seconds
   # API Key specific settings (only used when type is "apikey")
   # api_key_header: "X-API-Key"  # Header name for API key
   # api_key_prefix: ""  # Optional prefix for API key validation

@@ -40,12 +40,12 @@ func (a *AppContext) Start() error {
 		}
 
 		// Nama dari struct yang implement interface Library
-		lTypeName := "SQLDatabase"
-		if a.Config.Database.Driver == "mongodb" {
-			lTypeName = "MongoDatabase"
-		}
+		// lTypeName := "SQLDatabase"
+		// if a.Config.Database.Driver == "mongodb" {
+		// 	lTypeName = "MongoDatabase"
+		// }
 
-		_, err := libmanager.LoadSingletonFromLoader(loader, lTypeName, a.Context, a.Config.Database)
+		_, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.Database)
 		if err != nil {
 			return err
 		}
@@ -58,7 +58,7 @@ func (a *AppContext) Start() error {
 		if !ok {
 			return fmt.Errorf("LibraryLoader 'redis' tidak ditemukan")
 		}
-		_, err := libmanager.LoadSingletonFromLoader(loader, "Redis", a.Context, a.Config.Database)
+		_, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.Database)
 		if err != nil {
 			return err
 		}
@@ -71,7 +71,7 @@ func (a *AppContext) Start() error {
 		if !ok {
 			return fmt.Errorf("LibraryLoader 'pubsub' tidak ditemukan")
 		}
-		_, err := libmanager.LoadSingletonFromLoader(loader, "PubSub", a.Context, a.Config.Database)
+		_, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.Database)
 		if err != nil {
 			return err
 		}

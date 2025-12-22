@@ -123,11 +123,11 @@ func (r *ModuleManager) Register(module Module) error {
 }
 
 func LoadConfig[T config.Configurable](name string, c T, file string, ext string, path []string) error {
-	return config.LoadConfig(name, c, file, ext, path)
+	return config.LoadConfig(name, c, file, ext, path, true)
 }
 
 func LoadDefaultConfig[T config.Configurable](name string, c T) error {
-	return config.LoadConfig(name, c, "config", "yaml", []string{})
+	return config.LoadConfig(name, c, "config", "yaml", []string{}, true)
 }
 
 // GetModule retrieves a registered module by name

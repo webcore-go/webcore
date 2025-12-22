@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/semanggilab/webcore-go/app/config"
+	"github.com/semanggilab/webcore-go/app/loader/auth"
 	"github.com/semanggilab/webcore-go/app/logger"
 	"github.com/semanggilab/webcore-go/app/middleware"
 )
@@ -68,7 +69,7 @@ func NewApp(ctx context.Context, cfg *config.Config, loaders map[string]LibraryL
 // Start starts the application
 func (a *App) Start() error {
 	// Create Fiber app
-	a.Context.Web = fiber.New(a.Context.Config.GetFiberConfig())
+	a.Context.Web = fiber.New(a.Context.Config.GetFiberConfig(middleware.ErrorHandler))
 
 	// Initialize shared dependencies
 	if err := a.Context.Start(); err != nil {
@@ -113,7 +114,36 @@ func (a *App) setupGlobalMiddleware() {
 	middleware.SetupGlobalMiddleware(a.Context.Web, a.Context.Config)
 
 	// Authentication middleware
-	a.Context.Root = middleware.SetupAuthMiddleware(a.Context.Web, a.Context.Config)
+	// a.Context.Root = middleware.SetupAuthMiddleware(a.Context.Web, a.Context.Config)
+	a.setupAuthMiddleware()
+}
+
+func (a *App) setupAuthMiddleware() {
+	var handler fiber.Handler
+	if a.Context.Config.Auth.Type == "none" {
+		handler = func(c *fiber.Ctx) error {
+			return c.Next()
+		}
+	} else {
+		lName := "authn:" + a.Context.Config.Auth.Type
+		loader, ok := a.LibraryManager.GetLoader(lName)
+		if !ok {
+			logger.Fatal("LibraryLoader tidak ditemukan", "name", lName)
+		}
+
+		// Initialize module components
+		library, err := a.LibraryManager.LoadSingletonFromLoader(loader, a.Context, a.Context.Config.Auth)
+		if err != nil {
+			logger.Fatal("Setup Authentication middleware", "error", err)
+		}
+
+		authn := library.(auth.IAuthenticationManager)
+		handler = authn.GetAuthenticatonHandler()
+	}
+
+	// Apply authentication to protected routes
+	a.Context.Root = a.Context.Web.Group(a.Context.Config.Server.PathPrefix, handler)
+
 }
 
 // setupRoutes sets up application routes
