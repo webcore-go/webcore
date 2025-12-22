@@ -6,7 +6,7 @@ import (
 
 	"github.com/semanggilab/webcore-go/app/config"
 	"github.com/semanggilab/webcore-go/app/core"
-	"github.com/semanggilab/webcore-go/install"
+	"github.com/semanggilab/webcore-go/deps"
 )
 
 func main() {
@@ -15,12 +15,12 @@ func main() {
 	// Load configuration
 	cfg := config.Config{}
 	// if err := config.LoadConfig(&cfg, "config", "yaml", []string{}); err != nil {
-	if err := config.LoadDefaultConfig(&cfg); err != nil {
+	if err := config.LoadDefaultConfig(&cfg, false); err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
 	// Initialize application
-	application := core.NewApp(ctx, &cfg, install.APP_LIBRARIES, install.APP_PACKAGES)
+	application := core.NewApp(ctx, &cfg, deps.APP_LIBRARIES, deps.APP_PACKAGES)
 
 	// Start the application
 	if err := application.Start(); err != nil {

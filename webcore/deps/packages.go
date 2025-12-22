@@ -1,4 +1,4 @@
-package install
+package deps
 
 import (
 	"github.com/semanggilab/webcore-go/app/core"
