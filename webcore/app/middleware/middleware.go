@@ -31,14 +31,6 @@ func SetupGlobalMiddleware(app *fiber.App, cfg *config.Config) {
 		TimeFormat: "02-Jan-2006 15:04:05",
 	}))
 
-	// CORS middleware
-	// app.Use(cors.New(cors.Config{
-	// 	AllowOrigins:     "*",
-	// 	AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
-	// 	AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
-	// 	AllowCredentials: true,
-	// 	ExposeHeaders:    "Content-Length",
-	// }))
 	corsConfig := cors.Config{
 		AllowOrigins:     strings.Join(cfg.App.CORS.AllowOrigins, ","),
 		AllowMethods:     strings.Join(cfg.App.CORS.AllowMethods, ","),
@@ -73,25 +65,6 @@ func SetupGlobalMiddleware(app *fiber.App, cfg *config.Config) {
 		app.Use(DefaultRateLimit(cfg.App.RateLimit))
 	}
 }
-
-// // SetupAuthMiddleware sets up authentication middleware
-// func SetupAuthMiddleware(app *fiber.App, cfg *config.Config) fiber.Router {
-// 	authConfig := cfg.Auth
-
-// 	// Apply authentication to protected routes
-// 	protected := app.Group(cfg.Server.PathPrefix, NewAuth(authConfig))
-
-// 	if cfg.Auth.Type != "none" {
-// 		// Example of role-based access control
-// 		admin := protected.Group("/admin", RoleRequired("admin"))
-// 		_ = admin // Prevent unused variable error
-
-// 		// Example of permission-based access control
-// 		_ = protected.Use(PermissionRequired("read:users")) // Example permission
-// 	}
-
-// 	return protected
-// }
 
 // SecurityHeadersMiddleware adds security headers
 func SecurityHeadersMiddleware() fiber.Handler {

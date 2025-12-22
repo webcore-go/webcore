@@ -15,7 +15,7 @@ func main() {
 	// Load configuration
 	cfg := config.Config{}
 	// if err := config.LoadConfig(&cfg, "config", "yaml", []string{}); err != nil {
-	if err := config.LoadDefaultConfig(&cfg, false); err != nil {
+	if err := config.LoadDefaultConfig(&cfg); err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 

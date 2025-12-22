@@ -56,7 +56,7 @@ func YamlBackend(control string) (*AuthStoreYAML, error) {
 	switch control {
 	case "ABAC":
 		var tmp store.StorageABAC
-		if err := appConfig.LoadConfig("access", &tmp, "access", "yaml", []string{}, false); err != nil {
+		if err := appConfig.LoadConfig("access", &tmp, "access", "yaml", []string{}); err != nil {
 			return nil, err
 		}
 
@@ -71,7 +71,7 @@ func YamlBackend(control string) (*AuthStoreYAML, error) {
 		}
 	default:
 		var tmp store.StorageRBAC
-		if err := appConfig.LoadConfig("access", &tmp, "access", "yaml", []string{}, false); err != nil {
+		if err := appConfig.LoadConfig("access", &tmp, "access", "yaml", []string{}); err != nil {
 			return nil, err
 		}
 

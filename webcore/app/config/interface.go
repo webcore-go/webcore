@@ -14,18 +14,28 @@ type Configurable interface {
 	SetEnvBindings() map[string]string
 }
 
-func LoadDefaultConfig[T Configurable](c T, ismodule bool) error {
-	return LoadConfig("", c, "config", "yaml", []string{}, ismodule)
+func LoadDefaultConfig[T Configurable](c T) error {
+	return LoadConfig("", c, "config", "yaml", []string{})
 }
 
-func LoadDefaultConfigModule[T Configurable](name string, c T) error {
-	return LoadConfig(name, c, "config", "yaml", []string{}, true)
+func LoadDefaultConfigModule[T Configurable](moduleName string, c T) error {
+	prefix := getKeyPrefix(moduleName, true)
+	return LoadConfig(prefix, c, "config", "yaml", []string{})
 }
 
-func LoadConfig[T Configurable](prefix string, c T, file string, ext string, path []string, ismodule bool) error {
+func LoadConfigModule[T Configurable](moduleName string, c T, file string, ext string, path []string) error {
+	prefix := getKeyPrefix(moduleName, true)
+	return LoadConfig(prefix, c, "config", "yaml", []string{})
+}
+
+func LoadConfig[T Configurable](prefix string, c T, file string, ext string, path []string) error {
 	var v *viper.Viper
 	replacer := strings.NewReplacer(".", "_")
 	name := file + "." + ext
+
+	if !strings.HasSuffix(prefix, ".") {
+		prefix += "."
+	}
 
 	if InstanceViper[name] == nil {
 		v = viper.New()
@@ -60,7 +70,7 @@ func LoadConfig[T Configurable](prefix string, c T, file string, ext string, pat
 	}
 
 	// Set defaults with priority to environment variables
-	setPriorityDefaults(c, v, replacer, prefix, ismodule)
+	setPriorityDefaults(c, v, replacer, prefix)
 
 	if err := v.Unmarshal(c); err != nil {
 		return err
@@ -69,15 +79,19 @@ func LoadConfig[T Configurable](prefix string, c T, file string, ext string, pat
 	return nil
 }
 
-func setPriorityDefaults(c Configurable, v *viper.Viper, replacer *strings.Replacer, prefix string, ismodule bool) {
-	var modPrefix string
+func getKeyPrefix(prefix string, ismodule bool) string {
 	if prefix != "" {
 		if ismodule {
-			modPrefix = "module." + prefix + "."
+			return "module." + prefix + "."
 		} else {
-			modPrefix = prefix + "."
+			return prefix
 		}
 	}
+	return ""
+}
+
+func setPriorityDefaults(c Configurable, v *viper.Viper, replacer *strings.Replacer, prefix string) {
+	modPrefix := prefix
 
 	// Force binding of specific environment variables
 	bindings := c.SetEnvBindings()
@@ -87,7 +101,7 @@ func setPriorityDefaults(c Configurable, v *viper.Viper, replacer *strings.Repla
 
 	defaults := c.SetDefaults()
 
-	log.Printf("Scan Values:")
+	log.Printf("Scan Values %s with prefix [%s]:", v.ConfigFileUsed(), prefix)
 	for _, runtimeKey := range v.AllKeys() {
 		runtimeValue := v.Get(runtimeKey)
 		envFilekey := replacer.Replace(runtimeKey)
