@@ -14,17 +14,22 @@ sync:
 	@echo "Running go work sync..."
 	@go work sync
 
-# Target untuk menjalankan aplikasi
-run:
-	@echo "Running the application with air..."
+# Target untuk debig aplikasi
+debug:
+	@echo "Debug the application with air..."
 	@air -c .air-direct.toml
 
-# Target untuk menjalankan pengujian
+# Target untuk menjalankan aplikasi
+run: sync
+	@echo "Running the application..."
+	@go run webcore/main.go
+
+# Target untuk test pengujian
 test:
 	@echo "Running tests..."
 	@go test $(TEST_FLAGS) ./...
 
-# Target untuk menjalankan analisis kode
+# Target untuk cek vurnerability analisis kode
 vet:
 	@echo "Running VET..."
 	@go vet $(MAIN_PACKAGE)
@@ -60,4 +65,4 @@ clean:
 	@rm -f $(APP_NAME)
 
 # Target phony: mendeklarasikan target yang bukan file
-.PHONY: all sync run test build docker-up docker-down docker-build docker-push clean
+.PHONY: all sync debug run test build docker-up docker-down docker-build docker-push clean
