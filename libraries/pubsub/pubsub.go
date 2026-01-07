@@ -51,8 +51,8 @@ func NewPubSub(ctx context.Context, config config.PubSubConfig) (*PubSub, error)
 	var client *pubsub.Client
 	var err error
 
-	if config.ProjectID == "" || config.Topic == "" || config.Subscription == "" {
-		return nil, fmt.Errorf("PubSub config project_id, topic, and subscription cannot be empty")
+	if config.ProjectID == "" {
+		return nil, fmt.Errorf("PubSub config project_id cannot be empty")
 	}
 
 	// Configure PubSub client options

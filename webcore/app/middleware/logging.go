@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -32,6 +33,17 @@ func RequestLogger() fiber.Handler {
 		)
 
 		return err
+	}
+}
+
+// Middleware to remove trailing slash
+func RemoveTrailingSlash() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		path := c.Path()
+		if strings.HasSuffix(path, "/") && path != "/" {
+			return c.Redirect(strings.TrimSuffix(path, "/"), fiber.StatusMovedPermanently)
+		}
+		return c.Next()
 	}
 }
 

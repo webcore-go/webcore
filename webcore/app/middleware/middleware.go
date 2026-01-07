@@ -42,6 +42,9 @@ func SetupGlobalMiddleware(app *fiber.App, cfg *config.Config) {
 	}
 	app.Use(cors.New(corsConfig))
 
+	// Remove Trailing Slash middleware
+	app.Use(RemoveTrailingSlash())
+
 	// Request ID middleware
 	if cfg.App.Features.Tracing {
 		app.Use(RequestID())
