@@ -47,7 +47,7 @@ app:
     # burst: 100
 
   module:
-    base_path: "./modules"
+    base_path: "./ext"
     disabled:
       - "modulea"
 
@@ -59,14 +59,17 @@ server:
   write_timeout: 30s
 
 auth:
-  type: "jwt"  # Options: "jwt", "apikey"
+  control: RBAC
+  store: yaml # yaml, db
+  type: apikey # Options: "jwt", "apikey", "basic"
   secret_key: your-secret-key-here
-  expires_in: 86400  # 24 hours in seconds
+  expires_in: 86400 # 24 hours in seconds
   # API Key specific settings (only used when type is "apikey")
   # api_key_header: "X-API-Key"  # Header name for API key
   # api_key_prefix: ""  # Optional prefix for API key validation
 
 database:
+  driver: postgres
   host: ""
   port: 5432
   user: konsolidator
