@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/semanggilab/webcore-go/app/helper"
+	"github.com/webcore-go/webcore/app/helper"
 )
 
 var defaultLogger atomic.Pointer[Logger]

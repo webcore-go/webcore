@@ -252,7 +252,7 @@ package moduleb
 
 import (
     "github.com/gofiber/fiber/v2"
-    "github.com/semanggilab/webcore-go/app/registry"
+    "github.com/webcore-go/webcore/app/registry"
 )
 
 type Module struct {
@@ -343,7 +343,7 @@ Modules can depend on shared libraries:
 
 ```go
 import (
-    "github.com/semanggilab/webcore-go/modules/module-a/repository"
+    "github.com/webcore-go/webcore/modules/module-a/repository"
 )
 
 type Module struct {

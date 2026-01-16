@@ -9,9 +9,9 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/favicon"
 	flogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/semanggilab/webcore-go/app/config"
-	"github.com/semanggilab/webcore-go/app/helper"
-	"github.com/semanggilab/webcore-go/app/out"
+	"github.com/webcore-go/webcore/app/config"
+	"github.com/webcore-go/webcore/app/helper"
+	"github.com/webcore-go/webcore/app/out"
 )
 
 // SetupGlobalMiddleware sets up all global middleware

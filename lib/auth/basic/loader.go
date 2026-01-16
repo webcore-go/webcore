@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/semanggilab/webcore-go/app/loader"
-	"github.com/semanggilab/webcore-go/app/loader/auth"
-	"github.com/semanggilab/webcore-go/app/logger"
-	"github.com/semanggilab/webcore-go/lib/auth/authn"
+	"github.com/webcore-go/webcore/app/loader"
+	"github.com/webcore-go/webcore/app/loader/auth"
+	"github.com/webcore-go/webcore/app/logger"
+	"github.com/webcore-go/webcore/lib/auth/authn"
 )
 
 type BasicAuthLoader struct {

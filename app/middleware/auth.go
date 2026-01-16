@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/semanggilab/webcore-go/app/out"
+	"github.com/webcore-go/webcore/app/out"
 )
 
 // GetAuthType returns the authentication type from the context

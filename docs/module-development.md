@@ -45,9 +45,9 @@ package mymodule
 
 import (
     "github.com/gofiber/fiber/v2"
-    "github.com/semanggilab/webcore-go/app/core"
-    "github.com/semanggilab/webcore-go/app/loader"
-    appConfig "github.com/semanggilab/webcore-go/app/config"
+    "github.com/webcore-go/webcore/app/core"
+    "github.com/webcore-go/webcore/app/loader"
+    appConfig "github.com/webcore-go/webcore/app/config"
 )
 
 const (
@@ -155,9 +155,9 @@ import (
     "strconv"
     
     "github.com/gofiber/fiber/v2"
-    "github.com/semanggilab/webcore-go/app/registry"
-    "github.com/semanggilab/webcore-go/app/shared"
-    "github.com/semanggilab/webcore-go/modules/mymodule/service"
+    "github.com/webcore-go/webcore/app/registry"
+    "github.com/webcore-go/webcore/app/shared"
+    "github.com/webcore-go/webcore/modules/mymodule/service"
 )
 
 type Handler struct {
@@ -206,9 +206,9 @@ package service
 import (
     "context"
     
-    "github.com/semanggilab/webcore-go/app/registry"
-    "github.com/semanggilab/webcore-go/app/shared"
-    "github.com/semanggilab/webcore-go/modules/mymodule/repository"
+    "github.com/webcore-go/webcore/app/registry"
+    "github.com/webcore-go/webcore/app/shared"
+    "github.com/webcore-go/webcore/modules/mymodule/repository"
 )
 
 // ItemService defines the interface for item operations
@@ -316,7 +316,7 @@ import (
     "context"
     "time"
     
-    "github.com/semanggilab/webcore-go/app/shared"
+    "github.com/webcore-go/webcore/app/shared"
     "gorm.io/gorm"
 )
 
@@ -506,8 +506,8 @@ To ensure your module is properly loaded and its dependencies are triggered safe
 package deps
 
 import (
-    "github.com/semanggilab/webcore-go/app/core"
-    mymodule "github.com/semanggilab/webcore-go/modules/mymodule"
+    "github.com/webcore-go/webcore/app/core"
+    mymodule "github.com/webcore-go/webcore/modules/mymodule"
 )
 
 var APP_PACKAGES = []core.Module{
@@ -673,8 +673,8 @@ WebCore Library must be import using standard golang dependency or put library r
 package deps
 
 import (
-	"github.com/semanggilab/webcore-go/app/core"
-	"github.com/semanggilab/webcore-go/lib/mongo"
+	"github.com/webcore-go/webcore/app/core"
+	"github.com/webcore-go/webcore/lib/mongo"
 )
 
 var APP_LIBRARIES = map[string]core.LibraryLoader{
@@ -694,7 +694,7 @@ Your module can use shared dependencies (config, handler, repository, service, e
 package config
 
 import (
-	configa "github.com/semanggilab/webcore-go/modulesa/tb/config"
+	configa "github.com/webcore-go/webcore/modulesa/tb/config"
 )
 
 type ModuleConfig struct {
@@ -834,7 +834,7 @@ Your module should inherit configuration from `config.ModuleConfig` to ensure pr
 package config
 
 import (
-    "github.com/semanggilab/webcore-go/app/config"
+    "github.com/webcore-go/webcore/app/config"
 )
 
 type ModuleConfig struct {

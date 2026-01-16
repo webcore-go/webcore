@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/semanggilab/webcore-go/app/config"
+	"github.com/webcore-go/webcore/app/config"
 )
 
 // RateLimitConfig represents the configuration for rate limiting middleware

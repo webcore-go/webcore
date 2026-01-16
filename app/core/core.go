@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/semanggilab/webcore-go/app/config"
-	"github.com/semanggilab/webcore-go/app/loader"
+	"github.com/webcore-go/webcore/app/config"
+	"github.com/webcore-go/webcore/app/loader"
 )
 
 // Context represents shared dependencies that can be injected into modules

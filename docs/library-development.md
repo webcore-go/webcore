@@ -44,7 +44,7 @@ Create your library implementation that implements the `core.Library` interface:
 package yourlibrary
 
 import (
-    "github.com/semanggilab/webcore-go/app/loader"
+    "github.com/webcore-go/webcore/app/loader"
 )
 
 // YourLibrary represents your shared library
@@ -92,8 +92,8 @@ Create a loader that acts as a proxy for instantiating your library:
 package yourlibrary
 
 import (
-    "github.com/semanggilab/webcore-go/app/config"
-    "github.com/semanggilab/webcore-go/app/loader"
+    "github.com/webcore-go/webcore/app/config"
+    "github.com/webcore-go/webcore/app/loader"
 )
 
 type YourLibraryLoader struct {
@@ -127,8 +127,8 @@ Add your library loader to the `ALL_LIBRARIES` map:
 package deps
 
 import (
-    "github.com/semanggilab/webcore-go/app/core"
-    "github.com/semanggilab/webcore-go/lib/yourlibrary"
+    "github.com/webcore-go/webcore/app/core"
+    "github.com/webcore-go/webcore/lib/yourlibrary"
 )
 
 var APP_LIBRARIES = map[string]core.LibraryLoader{
@@ -244,7 +244,7 @@ import (
     "fmt"
 
     "github.com/go-redis/redis/v8"
-    "github.com/semanggilab/webcore-go/app/config"
+    "github.com/webcore-go/webcore/app/config"
 )
 
 // Redis represents shared Redis connection
@@ -290,8 +290,8 @@ func (r *Redis) Uninstall() error {
 package redis
 
 import (
-    "github.com/semanggilab/webcore-go/app/config"
-    "github.com/semanggilab/webcore-go/app/loader"
+    "github.com/webcore-go/webcore/app/config"
+    "github.com/webcore-go/webcore/app/loader"
 )
 
 type RedisLoader struct {

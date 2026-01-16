@@ -3,7 +3,7 @@ package helper
 import (
 	"reflect"
 
-	"github.com/semanggilab/webcore-go/app/out"
+	"github.com/webcore-go/webcore/app/out"
 )
 
 // Pagination represents pagination parameters

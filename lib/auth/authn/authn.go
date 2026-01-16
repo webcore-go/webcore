@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/semanggilab/webcore-go/app/config"
-	"github.com/semanggilab/webcore-go/app/core"
-	"github.com/semanggilab/webcore-go/app/loader/auth"
-	"github.com/semanggilab/webcore-go/app/out"
+	"github.com/webcore-go/webcore/app/config"
+	"github.com/webcore-go/webcore/app/core"
+	"github.com/webcore-go/webcore/app/loader/auth"
+	"github.com/webcore-go/webcore/app/out"
 )
 
 type AuthN struct {

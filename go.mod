@@ -1,4 +1,4 @@
-module github.com/semanggilab/webcore-go
+module github.com/webcore-go/webcore
 
 go 1.24.0
 
