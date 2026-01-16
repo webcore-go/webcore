@@ -12,6 +12,7 @@ type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
 	Redis    RedisConfig    `mapstructure:"redis"`
+	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	PubSub   PubSubConfig   `mapstructure:"pubsub"`
 	Auth     AuthConfig     `mapstructure:"auth"`
 }
@@ -89,7 +90,7 @@ type RedisConfig struct {
 type KafkaConfig struct {
 	Brokers         []string `mapstructure:"brokers"`
 	GroupID         string   `mapstructure:"group_id"`
-	Topic           string   `mapstructure:"topic"`
+	Topics          []string `mapstructure:"topics"`
 	AutoOffsetReset string   `mapstructure:"offset_reset"`
 }
 

@@ -59,6 +59,12 @@ func (c *Config) SetEnvBindings() map[string]string {
 		"redis.password": "REDIS_PASSWORD",
 		"redis.db":       "REDIS_DB",
 
+		// Kafka
+		"kafka.brokers":     "KAFKA_BROKERS",
+		"kafka.group_id":    "KAFKA_GROUP_ID",
+		"kafka.topics":      "KAFKA_TOPICS",
+		"kafka.auto_offset": "KAFKA_AUTO_OFFSET_RESET",
+
 		// PubSub
 		"pubsub.project_id":   "PROJECT_ID",
 		"pubsub.topic":        "PUBSUB_TOPIC",

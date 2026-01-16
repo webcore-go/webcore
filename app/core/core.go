@@ -49,6 +49,26 @@ func (a *AppContext) Start() error {
 		}
 	}
 
+	// Initialize Kafka if configured
+	if len(a.Config.Kafka.Brokers) > 0 {
+		// a.SetupKafka("default", a.Config.Kafka)
+		loaderProducer, okProducer := libmanager.GetLoader("kafka:producer")
+		if !okProducer {
+			_, err := libmanager.LoadSingletonFromLoader(loaderProducer, a.Context, a.Config.Kafka)
+			if err != nil {
+				return err
+			}
+		}
+
+		// Kafka Consumer tidak bisa otomatis di-load di sini karena membutuhkan
+		// handler khusus yang didefinisikan di modul masing-masing.
+		_, okConsumer := libmanager.GetLoader("kafka:consumer")
+
+		if !okProducer && !okConsumer {
+			return fmt.Errorf("LibraryLoader 'kafka' tidak ditemukan")
+		}
+	}
+
 	// Initialize PubSub if configured
 	if a.Config.PubSub.ProjectID != "" && a.Config.PubSub.Topic != "" {
 		// a.SetupPubSub("default", a.Config.PubSub)
