@@ -41,7 +41,10 @@ func (a *AppContext) Start() error {
 		// a.SetupRedis(a.Config.Redis)
 		loader, ok := libmanager.GetLoader("redis")
 		if !ok {
-			return fmt.Errorf("LibraryLoader 'redis' tidak ditemukan")
+			loader, ok = libmanager.GetLoader("cache:redis")
+			if !ok {
+				return fmt.Errorf("LibraryLoader 'redis' tidak ditemukan")
+			}
 		}
 		_, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.Database)
 		if err != nil {

@@ -7,6 +7,12 @@ import (
 
 type DbMap map[string]any
 
+type DbExpression struct {
+	Expr string // simple column name or complex expression
+	Op   string // only used when expression is column name
+	Args []any
+}
+
 type IDatabase interface {
 	Connector
 
@@ -18,14 +24,21 @@ type IDatabase interface {
 	GetDriver() string
 	GetName() string
 
-	Count(ctx context.Context, table string, filter DbMap) (int64, error)
-	Find(ctx context.Context, table string, column []string, filter DbMap, sort map[string]int, limit int64, skip int64) ([]DbMap, error)
-	FindOne(ctx context.Context, result any, table string, column []string, filter DbMap, sort map[string]int) error
+	Count(ctx context.Context, table string, filter []DbExpression) (int64, error)
+	Find(ctx context.Context, results any, table string, column []string, filter []DbExpression, sort map[string]int, limit int64, skip int64) error
+	FindOne(ctx context.Context, result any, table string, column []string, filter []DbExpression, sort map[string]int) error
 	InsertOne(ctx context.Context, table string, data any) (any, error)
-	Update(ctx context.Context, table string, filter DbMap, data any) (int64, error)
-	UpdateOne(ctx context.Context, table string, filter DbMap, data any) (int64, error)
-	Delete(ctx context.Context, table string, filter DbMap) (any, error)
-	DeleteOne(ctx context.Context, table string, filter DbMap) (any, error)
+	Update(ctx context.Context, table string, filter []DbExpression, data any) (int64, error)
+	UpdateOne(ctx context.Context, table string, filter []DbExpression, data any) (int64, error)
+	Delete(ctx context.Context, table string, filter []DbExpression) (int64, error)
+	DeleteOne(ctx context.Context, table string, filter []DbExpression) (int64, error)
+}
+
+// Generic for Memory Caching (ex: Redis, MemCached)
+type IMemoryCache interface {
+	Connector
+
+	GetClient() any
 }
 
 type IRedis interface {
