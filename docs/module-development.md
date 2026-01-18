@@ -47,7 +47,7 @@ import (
     "github.com/gofiber/fiber/v2"
     "github.com/webcore-go/webcore/app/core"
     "github.com/webcore-go/webcore/app/loader"
-    appConfig "github.com/webcore-go/webcore/app/config"
+    appConfig "github.com/webcore-go/webcore/infra/config"
 )
 
 const (
@@ -94,7 +94,7 @@ func (m *Module) Init(ctx *core.AppContext) error {
 
     // Load singleton library via core.LibraryManager.GetSingleton
     if lib, ok := core.Instance().Context.GetDefaultSingletonInstance(("database"); ok {
-        db := lib.(loader.IDatabase)
+        db := lib.(port.IDatabase)
         // Initialize your module components
         m.repository = repository.NewRepository(db)
         m.service = service.NewService(ctx, m.repository)
@@ -654,7 +654,7 @@ func (m *Module) Init(ctx *core.AppContext) error {
     // The parameter is taken from the key in APP_LIBRARIES variable in webcore/deps/libraries.go
     if lib, ok := core.Instance().Context.GetDefaultSingletonInstance(("database"); ok {
         // shared library successfully loaded
-        db := lib.(loader.IDatabase)
+        db := lib.(port.IDatabase)
 
         // Initialize your module components
         m.repository = repository.NewRepository(db)
@@ -834,7 +834,7 @@ Your module should inherit configuration from `config.ModuleConfig` to ensure pr
 package config
 
 import (
-    "github.com/webcore-go/webcore/app/config"
+    "github.com/webcore-go/webcore/infra/config"
 )
 
 type ModuleConfig struct {

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/webcore-go/webcore/app/logger"
+	"github.com/webcore-go/webcore/infra/logger"
 )
 
 // RequestLogger creates a middleware for logging HTTP requests

@@ -1,7 +1,7 @@
 package store
 
 import (
-	"github.com/webcore-go/webcore/app/loader/auth"
+	"github.com/webcore-go/webcore/port/auth"
 )
 
 // StorageABAC is a temporary struct for unmarshaling ABAC configuration.

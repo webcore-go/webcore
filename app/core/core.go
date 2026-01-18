@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/webcore-go/webcore/app/config"
-	"github.com/webcore-go/webcore/app/loader"
+	"github.com/webcore-go/webcore/infra/config"
+	"github.com/webcore-go/webcore/port"
 )
 
 // Context represents shared dependencies that can be injected into modules
@@ -111,27 +111,27 @@ func (a *AppContext) GetDefaultLibraryLoader(name string) (LibraryLoader, error)
 	return a.GetLibraryLoader(a.getDefaultName(name))
 }
 
-func (a *AppContext) LoadSingletonInstance(loader LibraryLoader, args ...any) (loader.Library, error) {
+func (a *AppContext) LoadSingletonInstance(loader LibraryLoader, args ...any) (port.Library, error) {
 	return Instance().LibraryManager.LoadSingletonFromLoader(loader, args...)
 }
 
-func (a *AppContext) LoadInstance(loader LibraryLoader, key string, args ...any) (loader.Library, error) {
+func (a *AppContext) LoadInstance(loader LibraryLoader, key string, args ...any) (port.Library, error) {
 	return Instance().LibraryManager.LoadInstanceFromLoader(loader, key, args...)
 }
 
-func (a *AppContext) GetSingletonInstance(name string) (loader.Library, bool) {
+func (a *AppContext) GetSingletonInstance(name string) (port.Library, bool) {
 	return Instance().LibraryManager.GetSingletonInstance(name)
 }
 
-func (a *AppContext) GetDefaultSingletonInstance(name string) (loader.Library, bool) {
+func (a *AppContext) GetDefaultSingletonInstance(name string) (port.Library, bool) {
 	return a.GetSingletonInstance(a.getDefaultName(name))
 }
 
-func (a *AppContext) GetInstance(name string, key string) (loader.Library, bool) {
+func (a *AppContext) GetInstance(name string, key string) (port.Library, bool) {
 	return Instance().LibraryManager.GetInstance(name, key)
 }
 
-func (a *AppContext) GetDefaultInstance(name string, key string) (loader.Library, bool) {
+func (a *AppContext) GetDefaultInstance(name string, key string) (port.Library, bool) {
 	return a.GetInstance(a.getDefaultName(name), key)
 }
 

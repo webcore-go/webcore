@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/webcore-go/webcore/app/config"
-	appConfig "github.com/webcore-go/webcore/app/config"
-	"github.com/webcore-go/webcore/app/loader"
-	"github.com/webcore-go/webcore/app/loader/auth"
-	"github.com/webcore-go/webcore/lib/authstore/store"
+	"github.com/webcore-go/webcore/adapter/authstore/store"
+	"github.com/webcore-go/webcore/infra/config"
+	appConfig "github.com/webcore-go/webcore/infra/config"
+	"github.com/webcore-go/webcore/port"
+	"github.com/webcore-go/webcore/port/auth"
 )
 
 type YamlLoader struct {
@@ -24,7 +24,7 @@ func (a *YamlLoader) Name() string {
 	return a.name
 }
 
-func (l *YamlLoader) Init(args ...any) (loader.Library, error) {
+func (l *YamlLoader) Init(args ...any) (port.Library, error) {
 	config := args[1].(config.AuthConfig)
 	backend, err := YamlBackend(config.Control)
 	if err != nil {

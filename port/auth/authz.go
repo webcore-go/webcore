@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/webcore-go/webcore/app/loader"
-	"github.com/webcore-go/webcore/app/logger"
+	"github.com/webcore-go/webcore/infra/logger"
+	"github.com/webcore-go/webcore/port"
 )
 
 type IAuthorizationManager interface {
@@ -13,7 +13,7 @@ type IAuthorizationManager interface {
 }
 
 type IAuthorization interface {
-	loader.Library
+	port.Library
 
 	Check(user IUserAuthInfo, method string, path string) error
 }

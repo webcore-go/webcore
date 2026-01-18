@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/webcore-go/webcore/app/config"
-	"github.com/webcore-go/webcore/app/loader"
-	"github.com/webcore-go/webcore/app/loader/auth"
-	"github.com/webcore-go/webcore/lib/auth/authn"
+	"github.com/webcore-go/webcore/adapter/auth/authn"
+	"github.com/webcore-go/webcore/infra/config"
+	"github.com/webcore-go/webcore/port"
+	"github.com/webcore-go/webcore/port/auth"
 )
 
 type ApiKeyLoader struct {
@@ -23,7 +23,7 @@ func (a *ApiKeyLoader) Name() string {
 	return a.name
 }
 
-func (a *ApiKeyLoader) Init(args ...any) (loader.Library, error) {
+func (a *ApiKeyLoader) Init(args ...any) (port.Library, error) {
 	config := args[1].(config.AuthConfig)
 	authn := &authn.AuthN{}
 	authn.SetValidator(NewApiKeyValidator(config))

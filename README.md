@@ -347,7 +347,7 @@ import (
 )
 
 type Module struct {
-    db     *loader.IDatabase
+    db     *port.IDatabase
     redis  *loader.IRedis
 }
 

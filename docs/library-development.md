@@ -92,7 +92,7 @@ Create a loader that acts as a proxy for instantiating your library:
 package yourlibrary
 
 import (
-    "github.com/webcore-go/webcore/app/config"
+    "github.com/webcore-go/webcore/infra/config"
     "github.com/webcore-go/webcore/app/loader"
 )
 
@@ -104,7 +104,7 @@ func (l *YourLibraryLoader) Name() string {
     return "YourLibrary"
 }
 
-func (l *YourLibraryLoader) Init(args ...any) (loader.Library, error) {
+func (l *YourLibraryLoader) Init(args ...any) (port.Library, error) {
     config := args[0].(YourConfig)
     library := NewYourLibrary(config)
     err := library.Install(args...)
@@ -173,7 +173,7 @@ When calling `libmanager.LoadSingletonFromLoader(loader, args ...anyl)` after lo
 Here example in `yourlibrary/loader.go`
 ```go
 // In yourlibrary/loader.go
-func (l *YourLibraryLoader) Init(args ...any) (loader.Library, error) {
+func (l *YourLibraryLoader) Init(args ...any) (port.Library, error) {
     // arg[0] context.Context, arg[1] config.YourLibrary
     context := args[0].(context.Context)
     config := args[1].(config.YourLibrary)
@@ -244,7 +244,7 @@ import (
     "fmt"
 
     "github.com/go-redis/redis/v8"
-    "github.com/webcore-go/webcore/app/config"
+    "github.com/webcore-go/webcore/infra/config"
 )
 
 // Redis represents shared Redis connection
@@ -290,7 +290,7 @@ func (r *Redis) Uninstall() error {
 package redis
 
 import (
-    "github.com/webcore-go/webcore/app/config"
+    "github.com/webcore-go/webcore/infra/config"
     "github.com/webcore-go/webcore/app/loader"
 )
 
@@ -302,7 +302,7 @@ func (l *RedisLoader) Name() string {
     return "Redis"
 }
 
-func (l *RedisLoader) Init(args ...any) (loader.Library, error) {
+func (l *RedisLoader) Init(args ...any) (port.Library, error) {
     config := args[0].(config.RedisConfig)
     redis := NewRedis(config)
     err := redis.Install(args...)

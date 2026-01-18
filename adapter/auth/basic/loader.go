@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/webcore-go/webcore/app/loader"
-	"github.com/webcore-go/webcore/app/loader/auth"
-	"github.com/webcore-go/webcore/app/logger"
-	"github.com/webcore-go/webcore/lib/auth/authn"
+	"github.com/webcore-go/webcore/adapter/auth/authn"
+	"github.com/webcore-go/webcore/infra/logger"
+	"github.com/webcore-go/webcore/port"
+	"github.com/webcore-go/webcore/port/auth"
 )
 
 type BasicAuthLoader struct {
@@ -24,7 +24,7 @@ func (a *BasicAuthLoader) Name() string {
 	return a.name
 }
 
-func (a *BasicAuthLoader) Init(args ...any) (loader.Library, error) {
+func (a *BasicAuthLoader) Init(args ...any) (port.Library, error) {
 
 	authn := &authn.AuthN{}
 	authn.SetValidator(&BasicAuthValidator{})

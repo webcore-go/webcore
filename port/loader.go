@@ -1,4 +1,4 @@
-package loader
+package port
 
 type Library interface {
 	Install(args ...any) error
