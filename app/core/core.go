@@ -36,6 +36,21 @@ func (a *AppContext) Start() error {
 		}
 	}
 
+	// Initialize database if configured
+	if a.Config.Memory.Enabled {
+		loader, ok := libmanager.GetLoader("memory")
+		if !ok {
+			loader, ok = libmanager.GetLoader("cache:memory")
+			if !ok {
+				return fmt.Errorf("LibraryLoader 'cache:memory' tidak ditemukan")
+			}
+		}
+		_, err := libmanager.LoadSingletonFromLoader(loader, a.Config.Memory)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Initialize Redis if configured
 	if a.Config.Redis.Host != "" {
 		// a.SetupRedis(a.Config.Redis)
@@ -46,7 +61,7 @@ func (a *AppContext) Start() error {
 				return fmt.Errorf("LibraryLoader 'redis' tidak ditemukan")
 			}
 		}
-		_, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.Database)
+		_, err := libmanager.LoadSingletonFromLoader(loader, a.Config.Redis)
 		if err != nil {
 			return err
 		}
@@ -57,7 +72,7 @@ func (a *AppContext) Start() error {
 		// a.SetupKafka("default", a.Config.Kafka)
 		loaderProducer, okProducer := libmanager.GetLoader("kafka:producer")
 		if okProducer {
-			_, err := libmanager.LoadSingletonFromLoader(loaderProducer, a.Context, a.Config.Kafka)
+			_, err := libmanager.LoadSingletonFromLoader(loaderProducer, a.Config.Kafka)
 			if err != nil {
 				return err
 			}

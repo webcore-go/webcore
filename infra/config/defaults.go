@@ -43,12 +43,18 @@ func (c *Config) SetDefaults() map[string]any {
 
 		// Database
 		"database.driver":            "postgres",
+		"database.scheme":            "",
 		"database.host":              "",
 		"database.port":              5432,
 		"database.ssl_mode":          "disable",
 		"database.max_idle_conns":    10,
 		"database.max_open_conns":    100,
 		"database.conn_max_lifetime": "300s", // in seconds
+
+		// Memory
+		"memory.enabled":    true,
+		"memory.limit":      0, // 0 = tidak dibatasi (dalam MB)
+		"memory.expires_in": "180s",
 
 		// Redis
 		"redis.host": "",

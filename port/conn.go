@@ -35,16 +35,11 @@ type IDatabase interface {
 }
 
 // Generic for Memory Caching (ex: Redis, MemCached)
-type IMemoryCache interface {
+type ICacheMemory interface {
 	Connector
 
-	GetClient() any
-}
-
-type IRedis interface {
-	Connector
-
-	GetClient() any
+	Set(key string, value any, ttl time.Duration) error
+	Get(key string) (any, bool)
 }
 
 type IPubSub interface {

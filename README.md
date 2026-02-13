@@ -348,7 +348,7 @@ import (
 
 type Module struct {
     db     *port.IDatabase
-    redis  *loader.IRedis
+    redis  *port.ICacheMemory
 }
 
 func (m *Module) Init(app *fiber.App, deps *module.Context) error {

@@ -9,11 +9,12 @@ In WebCoreGo, modules are self-contained units of functionality that can be deve
 ```
 Module
 ├── Config (Module Configuration)
-├── Handler (HTTP Layer)
+├── Handler (HTTP Layer, Messaging Consumer, gRPC, Data Stream Consumer)
 ├── Service (Business Logic Layer)
 ├── Repository (Data Access Layer)
-└── Models (Data Structures)
-└── module.go (Module entry point)
+├── Entity (Data Entity)
+├── module.go (Module entry point)
+└── go.mod (Module dependencies)
 ```
 
 ## Creating a New Module
@@ -26,13 +27,13 @@ Create a new module with the following structure:
 my-module/
 ├── module.go              # Module implementation
 ├── handler/
-│   └── handler.go          # HTTP handlers
+│   └── handler.go          # HTTP, Messaging Consumer, gRPC, Data Stream Consumer handlers
 ├── service/
 │   └── service.go          # Business logic
 ├── repository/
 │   └── repository.go      # Data access layer
-├── models/
-│   └── models.go          # Data models
+├── entity/
+│   └── entity_a.go          # Data Entity
 └── go.mod                 # Module dependencies
 ```
 
@@ -93,10 +94,12 @@ func (m *Module) Init(ctx *core.AppContext) error {
     }
 
     // Load singleton library via core.LibraryManager.GetSingleton
-    if lib, ok := core.Instance().Context.GetDefaultSingletonInstance(("database"); ok {
+    // The parameter is taken from the key in APP_LIBRARIES variable in webcore/deps/libraries.go
+    if lib, ok := core.Instance().Context.GetDefaultSingletonInstance("database"); ok {
         db := lib.(port.IDatabase)
-        // Initialize your module components
-        m.repository = repository.NewRepository(db)
+        
+        // Initialize your module components with the new repository pattern
+        m.repository = repository.NewRepository(ctx, m.config, nil, db)
         m.service = service.NewService(ctx, m.repository)
         m.handler = handler.NewHandler(ctx, m.service)
     }
@@ -146,6 +149,8 @@ func (m *Module) Repositories() map[string]any {
 
 ### 3. Handler Layer
 
+#### 3.1 HTTP Handler
+
 The handler layer manages HTTP requests and responses:
 
 ```go
@@ -155,18 +160,20 @@ import (
     "strconv"
     
     "github.com/gofiber/fiber/v2"
-    "github.com/webcore-go/webcore/app/registry"
+    "github.com/webcore-go/webcore/app/core"
+    "github.com/webcore-go/webcore/app/helper"
     "github.com/webcore-go/webcore/app/shared"
+    "github.com/webcore-go/webcore/infra/logger"
     "github.com/webcore-go/webcore/modules/mymodule/service"
 )
 
 type Handler struct {
-    userService service.UserService
+    itemService service.ItemService
 }
 
-func NewHandler(deps *module.Context, userService service.UserService) *Handler {
+func NewHandler(ctx *core.AppContext, itemService service.ItemService) *Handler {
     return &Handler{
-        userService: userService,
+        itemService: itemService,
     }
 }
 
@@ -175,7 +182,7 @@ func (h *Handler) GetItems(c *fiber.Ctx) error {
     page, _ := strconv.Atoi(c.Query("page", "1"))
     pageSize, _ := strconv.Atoi(c.Query("page_size", "10"))
     
-    items, total, err := h.userService.GetItems(c.Context(), page, pageSize)
+    items, total, err := h.itemService.GetItems(c.Context(), page, pageSize)
     if err != nil {
         return h.handleError(c, err)
     }
@@ -184,15 +191,273 @@ func (h *Handler) GetItems(c *fiber.Ctx) error {
     return c.JSON(shared.NewPaginatedResponse(paginatedItems, pagination))
 }
 
+// GetItem returns a single item by ID
+func (h *Handler) GetItem(c *fiber.Ctx) error {
+    id := c.Params("id")
+    
+    item, err := h.itemService.GetItem(c.Context(), id)
+    if err != nil {
+        return h.handleError(c, err)
+    }
+    
+    return c.JSON(shared.NewSuccessResponse(item))
+}
+
+// CreateItem creates a new item
+func (h *Handler) CreateItem(c *fiber.Ctx) error {
+    var item map[string]any
+    if err := c.BodyParser(&item); err != nil {
+        return h.handleError(c, err)
+    }
+    
+    newItem, err := h.itemService.CreateItem(c.Context(), item)
+    if err != nil {
+        return h.handleError(c, err)
+    }
+    
+    return c.JSON(shared.NewSuccessResponse(newItem))
+}
+
+// UpdateItem updates an existing item
+func (h *Handler) UpdateItem(c *fiber.Ctx) error {
+    id := c.Params("id")
+    
+    var item map[string]any
+    if err := c.BodyParser(&item); err != nil {
+        return h.handleError(c, err)
+    }
+    
+    updatedItem, err := h.itemService.UpdateItem(c.Context(), id, item)
+    if err != nil {
+        return h.handleError(c, err)
+    }
+    
+    return c.JSON(shared.NewSuccessResponse(updatedItem))
+}
+
+// DeleteItem deletes an item
+func (h *Handler) DeleteItem(c *fiber.Ctx) error {
+    id := c.Params("id")
+    
+    if err := h.itemService.DeleteItem(c.Context(), id); err != nil {
+        return h.handleError(c, err)
+    }
+    
+    return c.JSON(shared.NewSuccessResponse(map[string]any{
+        "message": "Item deleted successfully",
+    }))
+}
+
 // handleError handles errors and returns appropriate HTTP responses
 func (h *Handler) handleError(c *fiber.Ctx, err error) error {
-    h.logger.Error("API error", "error", err.Error())
+    logger.Error("API error", "error", err.Error())
     
     if apiErr, ok := err.(*helper.APIError); ok {
         return c.Status(apiErr.Code).JSON(shared.NewErrorResponse(apiErr.Message))
     }
     
     return c.Status(fiber.StatusInternalServerError).JSON(shared.NewErrorResponse("Internal server error"))
+}
+```
+
+#### 3.2 Kafka Handler
+The handler layer manages Kafka Consumer incomming message
+```go
+package handler
+
+import (
+	"context"
+	"sync"
+
+	"github.com/goccy/go-json"
+	"github.com/webcore-go/webcore/app/core"
+	"github.com/webcore-go/webcore/app/helper"
+	"github.com/webcore-go/webcore/infra/logger"
+
+	"github.com/semanggilab/lib-go-fhir/helper/types"
+	"github.com/semanggilab/lib-go-fhir/service"
+)
+
+// Config menyimpan semua konfigurasi yang dibutuhkan untuk Kafka Consumer.
+type KafkaHandler struct {
+	context *core.AppContext
+	service *service.FhirTransactionService
+}
+
+// NewKafkaHandler membuat dan mengembalikan instance kafka.Reader (consumer) baru.
+func NewKafkaHandler(wctx *core.AppContext, service *service.FhirTransactionService) *KafkaHandler {
+	return &KafkaHandler{
+		context: wctx,
+		service: service,
+	}
+}
+
+func (kc *KafkaHandler) Run(ctx context.Context, data []byte) {
+	transaction := types.Transaction{}
+	err := json.Unmarshal(data, &transaction)
+	if err != nil {
+		logger.Info("JSON format invalid:", "error", err)
+	} else {
+		logger.Debug("Data: " + helper.ToLogJSON(transaction))
+
+		// perbaiki reference dan simpan ke database (synchronous)
+		newBundle, register := kc.preprocess(transaction)
+
+		// kemudian teruskan ke HAPI FHIR di thread terpisah (asynchronous)
+		if newBundle != nil {
+			var wg sync.WaitGroup
+			wg.Go(func() {
+				kc.handleTransaction(transaction.Method, transaction.Env, transaction.Authorization, newBundle, register)
+			})
+			wg.Wait()
+		}
+	}
+}
+
+func (kc *KafkaHandler) preprocess(transaction types.Transaction) (any, any) {
+	newBundle, set, err := kc.service.Preprocess(transaction)
+	if err != nil {
+		logger.Info("Gagal saat menrjemahkan data transaksi", "error", err)
+		return nil, nil
+	}
+
+	return newBundle, set
+}
+```
+
+#### 3.3 Message Broker (Google Pub/Sub) Consumer
+The handler layer manages incomming message from Message Broker (Google Pub/Sub) Consumer
+
+```go
+package handler
+
+import (
+	"context"
+	"fmt"
+	"slices"
+
+	"github.com/semanggilab/webcore-go/app/loader"
+	"github.com/semanggilab/webcore-go/app/logger"
+	ppubsub "github.com/semanggilab/webcore-go/lib/pubsub"
+	tbentity "github.com/semanggilab/webcore-go/modules/tb/entity"
+	"github.com/semanggilab/webcore-go/modules/tbpubsub/config"
+	"github.com/semanggilab/webcore-go/modules/tbpubsub/entity"
+	"github.com/semanggilab/webcore-go/modules/tbpubsub/repository"
+)
+
+type CkgReceiver struct {
+	Configurations *config.ModuleConfig
+	CkgRepo        *repository.CKGTBRepository
+	PubSubRepo     *repository.PubSubRepository
+}
+
+func NewCkgReceiver(ctx context.Context, config *config.ModuleConfig, ckgRepo *repository.CKGTBRepository, pubsubRepo *repository.PubSubRepository) *CkgReceiver {
+	return &CkgReceiver{
+		Configurations: config,
+		PubSubRepo:     pubsubRepo,
+		CkgRepo:        ckgRepo,
+	}
+}
+
+func (r *CkgReceiver) Prepare(ctx context.Context, messages []loader.IPubSubMessage) map[string][]any {
+	validMessages := make(map[string][]any)
+
+	// Extract message IDs
+	messageIDs := make([]string, 0, len(messages))
+	for _, msg := range messages {
+		messageIDs = append(messageIDs, msg.GetID())
+	}
+
+	// Periksa semua message ID lalu hanya ambil yang belum pernah diproses saja
+	existingIDs, err := r.PubSubRepo.GetIncomingIDs(messageIDs)
+	if err != nil {
+		logger.Debug("Gagal mengambil daftar message ID existing", "error", err)
+		existingIDs = []string{}
+	}
+
+	// Process semua message satu-satu
+	for _, msg := range messages {
+		// Skip jika message ID sudah diproses sebelumnya
+		if slices.Contains(existingIDs, msg.GetID()) {
+			logger.Debug("Skip message", "id", msg.GetID())
+			continue
+		}
+
+		// Parse message data
+		dataStr := string(msg.GetData())
+
+		pubsubObjectWrapper := entity.NewPubSubConsumerWrapper[*tbentity.StatusPasienTBInput](r.Configurations)
+		err := pubsubObjectWrapper.FromJSON(dataStr)
+		if err != nil {
+			logger.Debug("Gagal parsing", "id", msg.GetID(), "error", err)
+			continue
+		}
+		logger.DebugJson("PubSub Receive Object:", pubsubObjectWrapper)
+
+		// Hanya pedulikan Object CKG yang valid
+		if !pubsubObjectWrapper.IsCKGObject() {
+			logger.Debug("Abaikan message non-CKG", "id", msg.GetID())
+			continue
+		}
+
+		// Simpan incomming message agar tidak diproses berulang kali
+		incoming := entity.IncomingMessageStatusTB{
+			ID:   msg.GetID(),
+			Data: &dataStr,
+			// ReceivedAt:  msg.PublishTime.String(),
+			ProcessedAt: nil,
+		}
+		if err := r.PubSubRepo.SaveNewIncoming(incoming); err != nil {
+			logger.Info("Gagal menyimpan incoming message", "id", msg.GetID(), "error", err)
+		}
+
+		// register ke validMessages
+		validMessages[msg.GetID()] = []any{incoming, msg, pubsubObjectWrapper.Data}
+	}
+
+	return validMessages
+}
+
+func (r *CkgReceiver) Consume(ctx context.Context, messages []loader.IPubSubMessage) (map[string]bool, error) {
+	results := make(map[string]bool)
+
+	// Filter message hanya yang belum diproses saja
+	validMessages := r.Prepare(ctx, messages)
+
+	// Process each valid message
+	for msgID, data := range validMessages {
+		logger.DebugJson("DATA0", data)
+
+		// incoming := data[0].(*entity.IncomingMessageStatusTB)
+		msg := data[1].(*ppubsub.PubSubMessage)
+		rawStatusPasien := data[2].([]*tbentity.StatusPasienTBInput)
+		statusPasien := make([]tbentity.StatusPasienTBInput, 0)
+		for _, status := range rawStatusPasien {
+			statusPasien = append(statusPasien, *status)
+		}
+
+		// Process the message
+		err := r.Process(ctx, statusPasien, msg)
+		if err != nil {
+			logger.Info("Saat memproses message", "id", msgID, "error", err)
+			results[msgID] = false
+			continue
+		}
+
+		results[msgID] = true
+	}
+
+	return results, nil
+}
+
+func (r *CkgReceiver) Process(ctx context.Context, statusPasien []tbentity.StatusPasienTBInput, msg *ppubsub.PubSubMessage) error {
+	logger.Debug(fmt.Sprintf("Received valid CKG SkriningCKG object [%s].\n Data: %s\n Attributes: %v", msg.ID, string(msg.Data), msg.Attributes))
+	logger.DebugJson("DATA", statusPasien)
+	// Save to database
+	_, err := r.CkgRepo.UpdateTbPatientStatus(statusPasien)
+	r.PubSubRepo.UpdateIncoming(msg.ID, nil)
+
+	return err
 }
 ```
 
@@ -206,18 +471,20 @@ package service
 import (
     "context"
     
-    "github.com/webcore-go/webcore/app/registry"
+    "github.com/webcore-go/webcore/app/core"
+    "github.com/webcore-go/webcore/app/helper"
     "github.com/webcore-go/webcore/app/shared"
+    "github.com/webcore-go/webcore/infra/logger"
     "github.com/webcore-go/webcore/modules/mymodule/repository"
 )
 
 // ItemService defines the interface for item operations
 type ItemService interface {
     GetItems(ctx context.Context, page, pageSize int) ([]map[string]any, int, error)
-    GetItem(ctx context.Context, id int) (map[string]any, error)
+    GetItem(ctx context.Context, id string) (map[string]any, error)
     CreateItem(ctx context.Context, item map[string]any) (map[string]any, error)
-    UpdateItem(ctx context.Context, id int, item map[string]any) (map[string]any, error)
-    DeleteItem(ctx context.Context, id int) error
+    UpdateItem(ctx context.Context, id string, item map[string]any) (map[string]any, error)
+    DeleteItem(ctx context.Context, id string) error
 }
 
 // Service represents the service layer
@@ -226,7 +493,7 @@ type Service struct {
 }
 
 // NewService creates a new Service instance
-func NewService(deps *module.Context, itemRepository repository.ItemRepository) *Service {
+func NewService(ctx *core.AppContext, itemRepository repository.ItemRepository) *Service {
     return &Service{
         itemRepository: itemRepository,
     }
@@ -243,7 +510,7 @@ func (s *Service) GetItems(ctx context.Context, page, pageSize int) ([]map[strin
 }
 
 // GetItem retrieves an item by ID
-func (s *Service) GetItem(ctx context.Context, id int) (map[string]any, error) {
+func (s *Service) GetItem(ctx context.Context, id string) (map[string]any, error) {
     item, err := s.itemRepository.GetItem(ctx, id)
     if err != nil {
         return nil, err
@@ -268,12 +535,12 @@ func (s *Service) CreateItem(ctx context.Context, item map[string]any) (map[stri
         return nil, err
     }
     
-    s.logger.Info("Item created", "item_id", newItem["id"])
+    logger.Info("Item created", "item_id", newItem["id"])
     return newItem, nil
 }
 
 // UpdateItem updates an existing item
-func (s *Service) UpdateItem(ctx context.Context, id int, item map[string]any) (map[string]any, error) {
+func (s *Service) UpdateItem(ctx context.Context, id string, item map[string]any) (map[string]any, error) {
     // Validate input
     if name, ok := item["name"].(string); ok && name == "" {
         return nil, helper.WebResponse(&helper.Response{
@@ -288,212 +555,327 @@ func (s *Service) UpdateItem(ctx context.Context, id int, item map[string]any) (
         return nil, err
     }
     
-    s.logger.Info("Item updated", "item_id", id)
+    logger.Info("Item updated", "item_id", id)
     return updatedItem, nil
 }
 
 // DeleteItem deletes an item
-func (s *Service) DeleteItem(ctx context.Context, id int) error {
+func (s *Service) DeleteItem(ctx context.Context, id string) error {
     // Call repository layer
     err := s.itemRepository.DeleteItem(ctx, id)
     if err != nil {
         return err
     }
     
-    s.logger.Info("Item deleted", "item_id", id)
+    logger.Info("Item deleted", "item_id", id)
     return nil
 }
 ```
 
 ### 5. Repository Layer
 
-The repository layer handles data access:
+The repository layer handles data access using the WebCoreGo database port interface:
 
 ```go
 package repository
 
 import (
-    "context"
-    "time"
-    
-    "github.com/webcore-go/webcore/app/shared"
-    "gorm.io/gorm"
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/webcore-go/webcore/app/core"
+	"github.com/webcore-go/webcore/app/helper"
+	"github.com/webcore-go/webcore/infra/logger"
+	"github.com/webcore-go/webcore/port"
 )
 
 // ItemRepository defines the interface for item operations
 type ItemRepository interface {
-    GetItems(ctx context.Context, page, pageSize int) ([]map[string]any, int, error)
-    GetItem(ctx context.Context, id int) (map[string]any, error)
-    CreateItem(ctx context.Context, item map[string]any) (map[string]any, error)
-    UpdateItem(ctx context.Context, id int, item map[string]any) (map[string]any, error)
-    DeleteItem(ctx context.Context, id int) error
+	GetItems(ctx context.Context, page, pageSize int) ([]map[string]any, int, error)
+	GetItem(ctx context.Context, id string) (map[string]any, error)
+	CreateItem(ctx context.Context, item map[string]any) (map[string]any, error)
+	UpdateItem(ctx context.Context, id string, item map[string]any) (map[string]any, error)
+	DeleteItem(ctx context.Context, id string) error
+	CheckDataExists(ctx context.Context, id string) (bool, error)
 }
 
 // Repository represents the repository layer
 type Repository struct {
-    db *gorm.DB
+	Connection port.IDatabase
+	Context    *core.AppContext
+	Config     *config.ModuleConfig
+	Memory     port.ICacheMemory
 }
 
 // NewRepository creates a new Repository instance
-func NewRepository(db *gorm.DB) *Repository {
-    return &Repository{
-        db: db,
-    }
+func NewRepository(wctx *core.AppContext, config *config.ModuleConfig, mem port.ICacheMemory, conn port.IDatabase) *Repository {
+	return &Repository{
+		Config:     config,
+		Connection: conn,
+		Context:    wctx,
+		Memory:     mem,
+	}
 }
 
-// Item represents the item model
+// Item represents the item entity
 type Item struct {
-    ID        uint      `json:"id" gorm:"primaryKey"`
-    Name      string    `json:"name" gorm:"size:100;not null"`
-    Status    string    `json:"status" gorm:"size:20;default:'active'"`
-    CreatedAt time.Time `json:"created_at"`
-    UpdatedAt time.Time `json:"updated_at"`
+	ID        string `json:"id" db:"id"`
+	Name      string `json:"name" db:"name"`
+	Status    string `json:"status" db:"status"`
+	CreatedAt string `json:"created_at" db:"created_at"`
+	UpdatedAt string `json:"updated_at" db:"updated_at"`
 }
 
-// TableName returns the table name for the Item model
+// TableName returns the table name for the Item entity
 func (Item) TableName() string {
-    return "items"
+	return "items"
+}
+
+// GetPkName returns the primary key name
+func (i *Item) GetPkName() string {
+	return "id"
+}
+
+// GetID returns the ID value
+func (i *Item) GetID() string {
+	return i.ID
 }
 
 // GetItems retrieves items with pagination
 func (r *Repository) GetItems(ctx context.Context, page, pageSize int) ([]map[string]any, int, error) {
-    var items []Item
-    var total int64
-    
-    // Get total count
-    if err := r.db.Model(&Item{}).Count(&total).Error; err != nil {
-        return nil, 0, err
-    }
-    
-    // Get paginated items
-    offset := (page - 1) * pageSize
-    if err := r.db.Offset(offset).Limit(pageSize).Find(&items).Error; err != nil {
-        return nil, 0, err
-    }
-    
-    // Convert to []map[string]any
-    result := make([]map[string]any, len(items))
-    for i, item := range items {
-        result[i] = map[string]any{
-            "id":         item.ID,
-            "name":       item.Name,
-            "status":     item.Status,
-            "created_at": item.CreatedAt,
-            "updated_at": item.UpdatedAt,
-        }
-    }
-    
-    return result, int(total), nil
+	var items []Item
+
+	// Build filter for active items
+	filter := []port.DbExpression{
+		{
+			Expr: "deleted_at",
+			Args: []any{nil},
+		},
+	}
+
+	// Get total count
+	total, err := r.Connection.Count(r.Context.Context, Item{}.TableName(), filter)
+	if err != nil {
+		logger.Error("Failed to count items", "error", err)
+		return nil, 0, err
+	}
+
+	// Get paginated items
+	offset := (page - 1) * pageSize
+	sort := map[string]int{"created_at": -1}
+	err = r.Connection.Find(r.Context.Context, &items, Item{}.TableName(), []string{}, filter, sort, offset, pageSize)
+	if err != nil {
+		logger.Error("Failed to find items", "error", err)
+		return nil, 0, err
+	}
+
+	// Convert to []map[string]any
+	result := make([]map[string]any, len(items))
+	for i, item := range items {
+		result[i] = map[string]any{
+			"id":         item.ID,
+			"name":       item.Name,
+			"status":     item.Status,
+			"created_at": item.CreatedAt,
+			"updated_at": item.UpdatedAt,
+		}
+	}
+
+	return result, int(total), nil
 }
 
 // GetItem retrieves an item by ID
-func (r *Repository) GetItem(ctx context.Context, id int) (map[string]any, error) {
-    var item Item
-    if err := r.db.First(&item, id).Error; err != nil {
-        if err == gorm.ErrRecordNotFound {
-            return nil, helper.WebResponse(&helper.Response{
-                Code:    404,
-                Message: "Item not found",
-            })
-        }
-        return nil, err
-    }
-    
-    return map[string]any{
-        "id":         item.ID,
-        "name":       item.Name,
-        "status":     item.Status,
-        "created_at": item.CreatedAt,
-        "updated_at": item.UpdatedAt,
-    }, nil
+func (r *Repository) GetItem(ctx context.Context, id string) (map[string]any, error) {
+	if id == "" {
+		return nil, fmt.Errorf("cannot get item with empty ID")
+	}
+
+	item := Item{}
+	filter := []port.DbExpression{
+		{
+			Expr: "id",
+			Args: []any{id},
+		},
+		{
+			Expr: "deleted_at",
+			Args: []any{nil},
+		},
+	}
+
+	err := r.Connection.FindOne(r.Context.Context, &item, item.TableName(), []string{}, filter, map[string]int{})
+	if err != nil {
+		logger.Error("Failed to find item", "id", id, "error", err)
+		return nil, helper.WebResponse(&helper.Response{
+			Code:    404,
+			Message: "Item not found",
+		})
+	}
+
+	return map[string]any{
+		"id":         item.ID,
+		"name":       item.Name,
+		"status":     item.Status,
+		"created_at": item.CreatedAt,
+		"updated_at": item.UpdatedAt,
+	}, nil
+}
+
+// CheckDataExists checks if an item exists by ID
+func (r *Repository) CheckDataExists(ctx context.Context, id string) (bool, error) {
+	if id == "" {
+		return false, fmt.Errorf("cannot check data with empty ID for table %s", Item{}.TableName())
+	}
+
+	filter := []port.DbExpression{
+		{
+			Expr: "id",
+			Args: []any{id},
+		},
+		{
+			Expr: "deleted_at",
+			Args: []any{nil},
+		},
+	}
+
+	count, err := r.Connection.Count(r.Context.Context, Item{}.TableName(), filter)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 // CreateItem creates a new item
 func (r *Repository) CreateItem(ctx context.Context, item map[string]any) (map[string]any, error) {
-    newItem := Item{
-        Name:   item["name"].(string),
-        Status: "active",
-    }
-    
-    if err := r.db.Create(&newItem).Error; err != nil {
-        return nil, helper.WebResponse(&helper.Response{
-            Code:    400,
-            Message: "Failed to create item",
-            Details: err.Error(),
-        })
-    }
-    
-    return map[string]any{
-        "id":         newItem.ID,
-        "name":       newItem.Name,
-        "status":     newItem.Status,
-        "created_at": newItem.CreatedAt,
-        "updated_at": newItem.UpdatedAt,
-    }, nil
+	// Convert map to database map
+	dbmap, err := helper.MarshalDbMap(item)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set default status if not provided
+	if _, ok := dbmap["status"]; !ok {
+		dbmap["status"] = "active"
+	}
+
+	// Insert into database
+	_, err = r.Connection.InsertOne(r.Context.Context, Item{}.TableName(), dbmap)
+	if err != nil {
+		logger.Error("Failed to create item", "error", err)
+		return nil, helper.WebResponse(&helper.Response{
+			Code:    400,
+			Message: "Failed to create item",
+			Details: err.Error(),
+		})
+	}
+
+	// Return the created item
+	return item, nil
 }
 
 // UpdateItem updates an existing item
-func (r *Repository) UpdateItem(ctx context.Context, id int, item map[string]any) (map[string]any, error) {
-    var existingItem Item
-    if err := r.db.First(&existingItem, id).Error; err != nil {
-        if err == gorm.ErrRecordNotFound {
-            return nil, helper.WebResponse(&helper.Response{
-                Code:    404,
-                Message: "Item not found",
-            })
-        }
-        return nil, err
-    }
-    
-    // Update fields
-    if name, ok := item["name"].(string); ok {
-        existingItem.Name = name
-    }
-    if status, ok := item["status"].(string); ok {
-        existingItem.Status = status
-    }
-    
-    if err := r.db.Save(&existingItem).Error; err != nil {
-        return nil, helper.WebResponse(&helper.Response{
-            Code:    400,
-            Message: "Failed to update item",
-            Details: err.Error(),
-        })
-    }
-    
-    return map[string]any{
-        "id":         existingItem.ID,
-        "name":       existingItem.Name,
-        "status":     existingItem.Status,
-        "created_at": existingItem.CreatedAt,
-        "updated_at": existingItem.UpdatedAt,
-    }, nil
+func (r *Repository) UpdateItem(ctx context.Context, id string, item map[string]any) (map[string]any, error) {
+	if id == "" {
+		return nil, fmt.Errorf("cannot update item with empty ID")
+	}
+
+	// Check if item exists
+	exists, err := r.CheckDataExists(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, helper.WebResponse(&helper.Response{
+			Code:    404,
+			Message: "Item not found",
+		})
+	}
+
+	// Convert map to database map
+	dbmap, err := helper.MarshalDbMap(item)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build filter for update
+	filter := []port.DbExpression{
+		{
+			Expr: "id",
+			Args: []any{id},
+		},
+	}
+
+	// Update in database
+	_, err = r.Connection.UpdateOne(r.Context.Context, Item{}.TableName(), filter, dbmap)
+	if err != nil {
+		logger.Error("Failed to update item", "id", id, "error", err)
+		return nil, helper.WebResponse(&helper.Response{
+			Code:    400,
+			Message: "Failed to update item",
+			Details: err.Error(),
+		})
+	}
+
+	// Return the updated item
+	return item, nil
 }
 
-// DeleteItem deletes an item
-func (r *Repository) DeleteItem(ctx context.Context, id int) error {
-    var item Item
-    if err := r.db.First(&item, id).Error; err != nil {
-        if err == gorm.ErrRecordNotFound {
-            return helper.WebResponse(&helper.Response{
-                Code:    404,
-                Message: "Item not found",
-            })
-        }
-        return err
-    }
-    
-    if err := r.db.Delete(&item).Error; err != nil {
-        return helper.WebResponse(&helper.Response{
-            Code:    400,
-            Message: "Failed to delete item",
-            Details: err.Error(),
-        })
-    }
-    
-    return nil
+// DeleteItem deletes an item (soft delete)
+func (r *Repository) DeleteItem(ctx context.Context, id string) error {
+	if id == "" {
+		return fmt.Errorf("cannot delete item with empty ID")
+	}
+
+	// Check if item exists
+	exists, err := r.CheckDataExists(ctx, id)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return helper.WebResponse(&helper.Response{
+			Code:    404,
+			Message: "Item not found",
+		})
+	}
+
+	// Build filter for delete
+	filter := []port.DbExpression{
+		{
+			Expr: "id",
+			Args: []any{id},
+		},
+	}
+
+	// Soft delete by setting deleted_at
+	deletedAt := map[string]any{
+		"deleted_at": time.Now(),
+	}
+
+	_, err = r.Connection.UpdateOne(r.Context.Context, Item{}.TableName(), filter, deletedAt)
+	if err != nil {
+		logger.Error("Failed to delete item", "id", id, "error", err)
+		return helper.WebResponse(&helper.Response{
+			Code:    400,
+			Message: "Failed to delete item",
+			Details: err.Error(),
+		})
+	}
+
+	return nil
 }
 ```
+
+#### Key Repository Patterns
+
+The repository layer follows these patterns from the FHIR repository:
+
+1. **Database Port Interface**: Uses `port.IDatabase` for database operations instead of direct ORM dependencies
+2. **DbExpression for Filtering**: Uses `port.DbExpression` to build query filters
+3. **Context Management**: Uses `core.AppContext` for application context
+4. **Cache Memory**: Supports optional caching via `port.ICacheMemory`
+5. **Helper Functions**: Uses `helper.MarshalDbMap` to convert entities to database maps
+6. **Soft Delete**: Implements soft delete pattern using `deleted_at` field
+7. **Error Handling**: Uses structured error responses with `helper.WebResponse`
 
 ### 6. Module Registration
 
@@ -652,12 +1034,12 @@ func (m *Module) Info(c *fiber.Ctx) error {
 func (m *Module) Init(ctx *core.AppContext) error {
     // Load singleton library via core.LibraryManager.GetSingleton
     // The parameter is taken from the key in APP_LIBRARIES variable in webcore/deps/libraries.go
-    if lib, ok := core.Instance().Context.GetDefaultSingletonInstance(("database"); ok {
+    if lib, ok := core.Instance().Context.GetDefaultSingletonInstance("database"); ok {
         // shared library successfully loaded
         db := lib.(port.IDatabase)
 
-        // Initialize your module components
-        m.repository = repository.NewRepository(db)
+        // Initialize your module components with the new repository pattern
+        m.repository = repository.NewRepository(ctx, m.config, nil, db)
         m.service = service.NewService(ctx, m.repository)
         m.handler = handler.NewHandler(ctx, m.service)
     }
@@ -727,6 +1109,7 @@ func (m *Module) Init(app *fiber.App, deps *module.Context) error {
 package repository
 
 import (
+    "context"
     "testing"
     
     "github.com/stretchr/testify/assert"
@@ -735,18 +1118,20 @@ import (
 
 func TestItemRepository_GetItems(t *testing.T) {
     // Setup test database
-    db := setupTestDatabase(t)
-    repo := NewRepository(db)
+    conn := setupTestDatabase(t)
+    wctx := setupTestContext()
+    repo := NewRepository(wctx, &config.ModuleConfig{}, nil, conn)
     
     // Test data
     items := []Item{
-        {Name: "Item 1", Status: "active"},
-        {Name: "Item 2", Status: "active"},
+        {ID: "1", Name: "Item 1", Status: "active"},
+        {ID: "2", Name: "Item 2", Status: "active"},
     }
     
     // Insert test data
     for _, item := range items {
-        db.Create(&item)
+        dbmap, _ := helper.MarshalDbMap(item)
+        conn.InsertOne(context.Background(), Item{}.TableName(), dbmap)
     }
     
     // Test
@@ -758,10 +1143,33 @@ func TestItemRepository_GetItems(t *testing.T) {
     assert.Len(t, result, len(items))
 }
 
+func TestItemRepository_CheckDataExists(t *testing.T) {
+    // Setup test database
+    conn := setupTestDatabase(t)
+    wctx := setupTestContext()
+    repo := NewRepository(wctx, &config.ModuleConfig{}, nil, conn)
+    
+    // Test data
+    item := Item{ID: "1", Name: "Item 1", Status: "active"}
+    dbmap, _ := helper.MarshalDbMap(item)
+    conn.InsertOne(context.Background(), Item{}.TableName(), dbmap)
+    
+    // Test existing item
+    exists, err := repo.CheckDataExists(context.Background(), "1")
+    require.NoError(t, err)
+    assert.True(t, exists)
+    
+    // Test non-existing item
+    exists, err = repo.CheckDataExists(context.Background(), "999")
+    require.NoError(t, err)
+    assert.False(t, exists)
+}
+
 // service_test.go
 package service
 
 import (
+    "context"
     "testing"
     
     "github.com/stretchr/testify/assert"
@@ -787,6 +1195,25 @@ func TestItemService_CreateItem(t *testing.T) {
     assert.NotEmpty(t, result["id"])
     assert.Equal(t, item["name"], result["name"])
 }
+
+func TestItemService_GetItem(t *testing.T) {
+    // Setup
+    deps := setupTestContext()
+    repo := &mockRepository{
+        data: map[string]map[string]any{
+            "1": {"id": "1", "name": "Test Item", "status": "active"},
+        },
+    }
+    service := NewService(deps, repo)
+    
+    // Test
+    result, err := service.GetItem(context.Background(), "1")
+    
+    // Assertions
+    require.NoError(t, err)
+    assert.Equal(t, "1", result["id"])
+    assert.Equal(t, "Test Item", result["name"])
+}
 ```
 
 ### Integration Tests
@@ -803,6 +1230,7 @@ import (
     
     "github.com/gofiber/fiber/v2"
     "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
 )
 
 func TestHandler_GetItems(t *testing.T) {
@@ -815,6 +1243,78 @@ func TestHandler_GetItems(t *testing.T) {
     
     // Test
     req := httptest.NewRequest(http.MethodGet, "/api/v1/mymodule/items", nil)
+    resp, err := app.Test(req)
+    
+    // Assertions
+    require.NoError(t, err)
+    assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestHandler_GetItem(t *testing.T) {
+    // Setup
+    app := fiber.New()
+    handler := setupTestHandler()
+    
+    // Register routes
+    app.Get("/api/v1/mymodule/items/:id", handler.GetItem)
+    
+    // Test
+    req := httptest.NewRequest(http.MethodGet, "/api/v1/mymodule/items/1", nil)
+    resp, err := app.Test(req)
+    
+    // Assertions
+    require.NoError(t, err)
+    assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestHandler_CreateItem(t *testing.T) {
+    // Setup
+    app := fiber.New()
+    handler := setupTestHandler()
+    
+    // Register routes
+    app.Post("/api/v1/mymodule/items", handler.CreateItem)
+    
+    // Test data
+    body := strings.NewReader(`{"name": "Test Item"}`)
+    req := httptest.NewRequest(http.MethodPost, "/api/v1/mymodule/items", body)
+    req.Header.Set("Content-Type", "application/json")
+    resp, err := app.Test(req)
+    
+    // Assertions
+    require.NoError(t, err)
+    assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestHandler_UpdateItem(t *testing.T) {
+    // Setup
+    app := fiber.New()
+    handler := setupTestHandler()
+    
+    // Register routes
+    app.Put("/api/v1/mymodule/items/:id", handler.UpdateItem)
+    
+    // Test data
+    body := strings.NewReader(`{"name": "Updated Item"}`)
+    req := httptest.NewRequest(http.MethodPut, "/api/v1/mymodule/items/1", body)
+    req.Header.Set("Content-Type", "application/json")
+    resp, err := app.Test(req)
+    
+    // Assertions
+    require.NoError(t, err)
+    assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
+func TestHandler_DeleteItem(t *testing.T) {
+    // Setup
+    app := fiber.New()
+    handler := setupTestHandler()
+    
+    // Register routes
+    app.Delete("/api/v1/mymodule/items/:id", handler.DeleteItem)
+    
+    // Test
+    req := httptest.NewRequest(http.MethodDelete, "/api/v1/mymodule/items/1", nil)
     resp, err := app.Test(req)
     
     // Assertions

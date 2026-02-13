@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-	"log"
 	"strings"
 
 	"github.com/spf13/viper"
@@ -113,8 +111,8 @@ func setPriorityDefaults(c Configurable, holder *ConfigHolder, replacer *strings
 
 	defaults := c.SetDefaults()
 
-	space := "      "
-	text := fmt.Sprintf("Scan Values %s with prefix [%s]:\n", v.ConfigFileUsed(), prefix)
+	// space := "      "
+	// text := fmt.Sprintf("Scan Values %s with prefix [%s]:\n", v.ConfigFileUsed(), prefix)
 	for _, runtimeKey := range v.AllKeys() {
 		if holder.KeyProcessed[runtimeKey] {
 			// skip yang sudah diproses
@@ -135,24 +133,24 @@ func setPriorityDefaults(c Configurable, holder *ConfigHolder, replacer *strings
 			if runtimeValue == nil {
 				envFileValue := v.Get(envFilekey)
 				if envFileValue != nil {
-					text += fmt.Sprintf("%s %s = %v -> [%s]\n", space, runtimeKey, envFileValue, envFilekey)
+					// text += fmt.Sprintf("%s %s = %v -> [%s]\n", space, runtimeKey, envFileValue, envFilekey)
 					v.SetDefault(runtimeKey, envFileValue)
 					if cut {
-						text += fmt.Sprintf("%s   ~ %s = %v -> [%s-CUT-PREFIX]\n", space, runtimeKeyCut, envFileValue, envFilekey)
+						// text += fmt.Sprintf("%s   ~ %s = %v -> [%s-CUT-PREFIX]\n", space, runtimeKeyCut, envFileValue, envFilekey)
 						v.SetDefault(runtimeKeyCut, envFileValue)
 					}
 				} else if defValue, ok := defaults[runtimeKey]; ok {
-					text += fmt.Sprintf("%s %s = %v -> [DEFAULTS]\n", space, runtimeKey, defValue)
+					// text += fmt.Sprintf("%s %s = %v -> [DEFAULTS]\n", space, runtimeKey, defValue)
 					v.SetDefault(runtimeKey, defValue)
 					if cut {
-						text += fmt.Sprintf("%s   ~ %s = %v -> [DEFAULTS-CUT-PREFIX]\n", space, runtimeKeyCut, defValue)
+						// text += fmt.Sprintf("%s   ~ %s = %v -> [DEFAULTS-CUT-PREFIX]\n", space, runtimeKeyCut, defValue)
 						v.SetDefault(runtimeKeyCut, defValue)
 					}
 				}
 			} else {
-				text += fmt.Sprintf("%s %s = %v -> [RUNTIME]\n", space, runtimeKey, runtimeValue)
+				// text += fmt.Sprintf("%s %s = %v -> [RUNTIME]\n", space, runtimeKey, runtimeValue)
 				if cut {
-					text += fmt.Sprintf("%s   ~ %s = %v -> [RUNTIME-CUT-PREFIX]\n", space, runtimeKeyCut, runtimeValue)
+					// text += fmt.Sprintf("%s   ~ %s = %v -> [RUNTIME-CUT-PREFIX]\n", space, runtimeKeyCut, runtimeValue)
 					v.SetDefault(runtimeKeyCut, runtimeValue)
 				}
 			}
@@ -164,5 +162,5 @@ func setPriorityDefaults(c Configurable, holder *ConfigHolder, replacer *strings
 		holder.KeyProcessed[runtimeKey] = true
 	}
 
-	log.Println(text)
+	// log.Println(text)
 }

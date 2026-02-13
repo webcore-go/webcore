@@ -11,6 +11,7 @@ type Config struct {
 	App      AppConfig      `mapstructure:"app"`
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
+	Memory   MemoryConfig   `mapstructure:"memory"`
 	Redis    RedisConfig    `mapstructure:"redis"`
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	PubSub   PubSubConfig   `mapstructure:"pubsub"`
@@ -66,6 +67,7 @@ type ServerConfig struct {
 
 type DatabaseConfig struct {
 	Driver          string            `mapstructure:"driver"` // supported: "postgres", "mysql", "sqlite", "mongodb"
+	Scheme          string            `mapstructure:"scheme"`
 	Host            string            `mapstructure:"host"`
 	Port            int               `mapstructure:"port"`
 	User            string            `mapstructure:"user"`
@@ -77,6 +79,12 @@ type DatabaseConfig struct {
 	MaxOpenConns    int               `mapstructure:"max_open_conns"`
 	ConnMaxLifetime time.Duration     `mapstructure:"conn_max_lifetime"`
 	SlaveHosts      []DatabaseConfig  `mapstructure:"slave_hosts"`
+}
+
+type MemoryConfig struct {
+	Enabled   bool          `mapstructure:"enabled"`
+	Limit     int           `mapstructure:"limit"`
+	ExpiresIn time.Duration `mapstructure:"expires_in"`
 }
 
 type RedisConfig struct {
@@ -94,13 +102,28 @@ type KafkaConfig struct {
 	AutoOffsetReset string   `mapstructure:"offset_reset"`
 }
 
+type GoogleCredential struct {
+	Type                    string `mapstructure:"type" json:"type"`
+	ProjectID               string `mapstructure:"project_id" json:"project_id"`
+	PrivateKeyID            string `mapstructure:"private_key_id" json:"private_key_id"`
+	PrivateKey              string `mapstructure:"private_key" json:"private_key"`
+	ClientEmail             string `mapstructure:"client_email" json:"client_email"`
+	ClientID                string `mapstructure:"client_id" json:"client_id"`
+	AuthURI                 string `mapstructure:"auth_uri" json:"auth_uri"`
+	TokenURI                string `mapstructure:"token_uri" json:"token_uri"`
+	AuthProviderX509CertURL string `mapstructure:"auth_provider_x509_cert_url" json:"auth_provider_x509_cert_url"`
+	ClientX509CertURL       string `mapstructure:"client_x509_cert_url" json:"client_x509_cert_url"`
+	UniverseDomain          string `mapstructure:"universe_domain" json:"universe_domain"`
+}
+
 type PubSubConfig struct {
-	ProjectID       string         `mapstructure:"project_id"`
-	Subscription    string         `mapstructure:"subscription"`
-	Topic           string         `mapstructure:"topic"`
-	CredentialsPath string         `mapstructure:"credentials"`
-	Consumer        ConsumerConfig `mapstructure:"consumer"`
-	Producer        ProducerConfig `mapstructure:"producer"`
+	ProjectID       string            `mapstructure:"project_id"`
+	Subscription    string            `mapstructure:"subscription"`
+	Topic           string            `mapstructure:"topic"`
+	CredentialsPath string            `mapstructure:"credentials"`
+	Credentials     *GoogleCredential `mapstructure:"credentials_data"`
+	Consumer        ConsumerConfig    `mapstructure:"consumer"`
+	Producer        ProducerConfig    `mapstructure:"producer"`
 }
 
 type ConsumerConfig struct {

@@ -43,6 +43,7 @@ func (c *Config) SetEnvBindings() map[string]string {
 
 		// Database
 		"database.driver":            "DATABASE_DRIVER",
+		"database.scheme":            "DATABASE_SCHEME",
 		"database.host":              "DATABASE_HOST",
 		"database.port":              "DATABASE_PORT",
 		"database.user":              "DATABASE_USER",
@@ -52,6 +53,11 @@ func (c *Config) SetEnvBindings() map[string]string {
 		"database.max_open_conns":    "DATABASE_MAX_OPEN_CONNS",
 		"database.max_idle_conns":    "DATABASE_MAX_IDLE_CONNS",
 		"database.conn_max_lifetime": "DATABASE_CONN_MAX_LIFETIME",
+
+		// Memory
+		"memory.enabled":    "MEMORY_ENABLED",
+		"memory.limit":      "MEMORY_LIMIT",
+		"memory.expires_in": "MEMORY_EXPIRES_IN",
 
 		// Redis
 		"redis.host":     "REDIS_HOST",
@@ -70,6 +76,19 @@ func (c *Config) SetEnvBindings() map[string]string {
 		"pubsub.topic":        "PUBSUB_TOPIC",
 		"pubsub.subscription": "PUBSUB_SUBSCRIPTION",
 		"pubsub.credentials":  "PUBSUB_CREDENTIALS",
+
+		// PubSub Google Credentials
+		"pubsub.credentials_data.type":                        "PUBSUB_CREDENTIALS_DATA_TYPE",
+		"pubsub.credentials_data.project_id":                  "PUBSUB_CREDENTIALS_DATA_PROJECT_ID",
+		"pubsub.credentials_data.private_key_id":              "PUBSUB_CREDENTIALS_DATA_PRIVATE_KEY_ID",
+		"pubsub.credentials_data.private_key":                 "PUBSUB_CREDENTIALS_DATA_PRIVATE_KEY",
+		"pubsub.credentials_data.client_email":                "PUBSUB_CREDENTIALS_DATA_CLIENT_EMAIL",
+		"pubsub.credentials_data.client_id":                   "PUBSUB_CREDENTIALS_DATA_CLIENT_ID",
+		"pubsub.credentials_data.auth_uri":                    "PUBSUB_CREDENTIALS_DATA_AUTH_URI",
+		"pubsub.credentials_data.token_uri":                   "PUBSUB_CREDENTIALS_DATA_TOKEN_URI",
+		"pubsub.credentials_data.auth_provider_x509_cert_url": "PUBSUB_CREDENTIALS_DATA_AUTH_PROVIDER_X509_URL",
+		"pubsub.credentials_data.client_x509_cert_url":        "PUBSUB_CREDENTIALS_DATA_CLIENT_X509_URL",
+		"pubsub.credentials_data.universe_domain":             "PUBSUB_CREDENTIALS_DATA_UNIVERSE_DOMAIN",
 
 		// PubSub Consumer
 		"pubsub.consumer.maxmessages":             "PUBSUB_CONSUMER_MAXMESSAGES",
