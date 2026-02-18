@@ -46,6 +46,7 @@ func (c *Config) SetDefaults() map[string]any {
 		"database.scheme":            "",
 		"database.host":              "",
 		"database.port":              5432,
+		"database.schema_name":       "public",
 		"database.ssl_mode":          "disable",
 		"database.max_idle_conns":    10,
 		"database.max_open_conns":    100,

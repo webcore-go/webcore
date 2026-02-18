@@ -49,6 +49,7 @@ func (c *Config) SetEnvBindings() map[string]string {
 		"database.user":              "DATABASE_USER",
 		"database.password":          "DATABASE_PASSWORD",
 		"database.name":              "DATABASE_NAME",
+		"database.schema_name":       "DATABASE_SCHEMA_NAME",
 		"database.ssl_mode":          "DATABASE_SSL_MODE",
 		"database.max_open_conns":    "DATABASE_MAX_OPEN_CONNS",
 		"database.max_idle_conns":    "DATABASE_MAX_IDLE_CONNS",

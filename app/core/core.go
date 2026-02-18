@@ -30,9 +30,11 @@ func (a *AppContext) Start() error {
 			return e
 		}
 
-		_, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.Database)
-		if err != nil {
-			return err
+		if loader != nil {
+			_, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.Database)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -40,14 +42,18 @@ func (a *AppContext) Start() error {
 	if a.Config.Memory.Enabled {
 		loader, ok := libmanager.GetLoader("memory")
 		if !ok {
-			loader, ok = libmanager.GetLoader("cache:memory")
-			if !ok {
-				return fmt.Errorf("LibraryLoader 'cache:memory' tidak ditemukan")
-			}
+			loader, _ = libmanager.GetLoader("cache:memory") // tidak perlu error kalau library tidak ditemukan
+			// loader, ok = libmanager.GetLoader("cache:memory")
+			// if !ok {
+			// 	return fmt.Errorf("LibraryLoader 'cache:memory' tidak ditemukan")
+			// }
 		}
-		_, err := libmanager.LoadSingletonFromLoader(loader, a.Config.Memory)
-		if err != nil {
-			return err
+
+		if loader != nil {
+			_, err := libmanager.LoadSingletonFromLoader(loader, a.Config.Memory)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -56,14 +62,18 @@ func (a *AppContext) Start() error {
 		// a.SetupRedis(a.Config.Redis)
 		loader, ok := libmanager.GetLoader("redis")
 		if !ok {
-			loader, ok = libmanager.GetLoader("cache:redis")
-			if !ok {
-				return fmt.Errorf("LibraryLoader 'redis' tidak ditemukan")
-			}
+			loader, _ = libmanager.GetLoader("cache:redis") // tidak perlu error kalau library tidak ditemukan
+			// loader, ok = libmanager.GetLoader("cache:redis")
+			// if !ok {
+			// 	return fmt.Errorf("LibraryLoader 'redis' tidak ditemukan")
+			// }
 		}
-		_, err := libmanager.LoadSingletonFromLoader(loader, a.Config.Redis)
-		if err != nil {
-			return err
+
+		if loader != nil {
+			_, err := libmanager.LoadSingletonFromLoader(loader, a.Config.Redis)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -80,23 +90,29 @@ func (a *AppContext) Start() error {
 
 		// Kafka Consumer tidak bisa otomatis di-load di sini karena membutuhkan
 		// handler khusus yang didefinisikan di modul masing-masing.
-		_, okConsumer := libmanager.GetLoader("kafka:consumer")
+		libmanager.GetLoader("kafka:consumer") // tidak perlu error kalau library tidak ditemukan
 
-		if !okProducer && !okConsumer {
-			return fmt.Errorf("LibraryLoader 'kafka' tidak ditemukan")
-		}
+		// _, okConsumer := libmanager.GetLoader("kafka:consumer")
+
+		// if !okProducer && !okConsumer {
+		// 	return fmt.Errorf("LibraryLoader 'kafka' tidak ditemukan")
+		// }
 	}
 
 	// Initialize PubSub if configured
 	if a.Config.PubSub.ProjectID != "" && a.Config.PubSub.Topic != "" {
 		// a.SetupPubSub("default", a.Config.PubSub)
-		loader, ok := libmanager.GetLoader("pubsub")
-		if !ok {
-			return fmt.Errorf("LibraryLoader 'pubsub' tidak ditemukan")
-		}
-		_, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.PubSub)
-		if err != nil {
-			return err
+		loader, _ := libmanager.GetLoader("pubsub") // tidak perlu error kalau library tidak ditemukan
+		// loader, ok := libmanager.GetLoader("pubsub")
+		// if !ok {
+		// 	return fmt.Errorf("LibraryLoader 'pubsub' tidak ditemukan")
+		// }
+
+		if loader != nil {
+			_, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.PubSub)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

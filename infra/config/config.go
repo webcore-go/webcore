@@ -73,6 +73,7 @@ type DatabaseConfig struct {
 	User            string            `mapstructure:"user"`
 	Password        string            `mapstructure:"password"`
 	Name            string            `mapstructure:"name"`
+	SchemaName      string            `mapstructure:"schema_name"`
 	SSLMode         string            `mapstructure:"ssl_mode"`
 	Attributes      map[string]string `mapstructure:"attributes"` // Additional connection parameters
 	MaxIdleConns    int               `mapstructure:"max_idle_conns"`

@@ -39,7 +39,7 @@ type ICacheMemory interface {
 	Connector
 
 	Set(key string, value any, ttl time.Duration) error
-	Get(key string) (any, bool)
+	Get(key string, outvalue any) bool
 }
 
 type IPubSub interface {
