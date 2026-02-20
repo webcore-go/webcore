@@ -32,6 +32,8 @@ type IDatabase interface {
 	UpdateOne(ctx context.Context, table string, filter []DbExpression, data any) (int64, error)
 	Delete(ctx context.Context, table string, filter []DbExpression) (int64, error)
 	DeleteOne(ctx context.Context, table string, filter []DbExpression) (int64, error)
+
+	StartMigration(ctx context.Context, service string, command string, dir string, args []string) error
 }
 
 // Generic for Memory Caching (ex: Redis, MemCached)
