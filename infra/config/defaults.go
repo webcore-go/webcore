@@ -63,6 +63,7 @@ func (c *Config) SetDefaults() map[string]any {
 		"redis.db":   0,
 
 		// Kafka
+		"kafka.enabled":      false,
 		"kafka.brokers":      []string{},
 		"kafka.group_id":     "",
 		"kafka.topics":       []string{},

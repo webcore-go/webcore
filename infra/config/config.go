@@ -97,6 +97,7 @@ type RedisConfig struct {
 }
 
 type KafkaConfig struct {
+	Enabled         bool     `mapstructure:"enabled"`
 	Brokers         []string `mapstructure:"brokers"`
 	GroupID         string   `mapstructure:"group_id"`
 	Topics          []string `mapstructure:"topics"`
