@@ -43,6 +43,7 @@ func (c *Config) SetDefaults() map[string]any {
 
 		// Database
 		"database.driver":            "postgres",
+		"database.uri":               "",
 		"database.scheme":            "",
 		"database.host":              "",
 		"database.port":              5432,

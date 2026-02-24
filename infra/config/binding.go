@@ -43,6 +43,7 @@ func (c *Config) SetEnvBindings() map[string]string {
 
 		// Database
 		"database.driver":            "DATABASE_DRIVER",
+		"database.uri":               "DATABASE_URI",
 		"database.scheme":            "DATABASE_SCHEME",
 		"database.host":              "DATABASE_HOST",
 		"database.port":              "DATABASE_PORT",
