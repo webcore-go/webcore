@@ -74,7 +74,7 @@ func (c *Config) SetEnvBindings() map[string]string {
 		"kafka.offset_reset": "KAFKA_AUTO_OFFSET_RESET",
 
 		// PubSub
-		"pubsub.project_id":   "PROJECT_ID",
+		"pubsub.project_id":   "PUBSUB_PROJECT_ID",
 		"pubsub.topic":        "PUBSUB_TOPIC",
 		"pubsub.subscription": "PUBSUB_SUBSCRIPTION",
 		"pubsub.credentials":  "PUBSUB_CREDENTIALS",
