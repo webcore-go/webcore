@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"runtime/debug"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,6 +13,7 @@ import (
 	"github.com/webcore-go/webcore/app/helper"
 	"github.com/webcore-go/webcore/app/out"
 	"github.com/webcore-go/webcore/infra/config"
+	"github.com/webcore-go/webcore/infra/logger"
 )
 
 // SetupGlobalMiddleware sets up all global middleware
@@ -22,7 +24,8 @@ func SetupGlobalMiddleware(app *fiber.App, cfg *config.Config) {
 	// Recovery middleware
 	if cfg.App.Features.Recovery {
 		app.Use(recover.New(recover.Config{
-			EnableStackTrace: true,
+			EnableStackTrace:  true,
+			StackTraceHandler: PanicStackTraceHandler,
 		}))
 	}
 	// Logger middleware
@@ -104,5 +107,18 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 	}
 
 	// Send custom error page
-	return c.Status(code).JSON(out.Error(code, 1, "UNKNOWN", err.Error()))
+	return c.Status(code).JSON(out.ErrorTrace(code, 1, "UNKNOWN", err.Error(), c))
+}
+
+func PanicStackTraceHandler(c *fiber.Ctx, e interface{}) {
+	stackTrace := string(debug.Stack())
+	error := struct {
+		Error interface{}
+		Stack string
+	}{
+		Error: e,
+		Stack: stackTrace,
+	}
+	logger.ErrorJson("Panic occurred: ", error)
+	c.Locals("StackTrace", stackTrace)
 }
