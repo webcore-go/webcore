@@ -3,6 +3,8 @@ package out
 import (
 	"runtime/debug"
 	"strings"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 var Environment = "development"
@@ -27,7 +29,7 @@ func newResponse(response *Response) *Response {
 		response.HttpCode = 200
 	}
 
-	if response.ErrorCode != 0 && response.ErrorName != "" && Environment == "development" {
+	if response.ErrorCode != 0 && response.ErrorName != "" && Environment == "development" && response.StackTrace == nil {
 		response.StackTrace = strings.Split(string(debug.Stack()), "\n")
 	}
 
@@ -82,5 +84,22 @@ func ErrorDetail(httpCode int, errorCode int, errorName string, message string, 
 		ErrorName: errorName,
 		Message:   message,
 		Details:   d,
+	})
+}
+
+func ErrorTrace(httpCode int, errorCode int, errorName string, message string, c *fiber.Ctx) *Response {
+	var stack []string
+	trace := c.Locals("StackTrace")
+	if errorCode != 0 && errorName != "" && Environment == "development" && trace != nil {
+		stack = strings.Split(trace.(string), "\n")
+		c.Locals("StackTrace", nil)
+	}
+
+	return newResponse(&Response{
+		HttpCode:   httpCode,
+		ErrorCode:  errorCode,
+		ErrorName:  errorName,
+		Message:    message,
+		StackTrace: stack,
 	})
 }

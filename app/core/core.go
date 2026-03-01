@@ -23,7 +23,7 @@ func (a *AppContext) Start() error {
 	libmanager := Instance().LibraryManager
 
 	// Initialize database if configured
-	if a.Config.Database.Host != "" {
+	if a.Config.Database.Host != "" || a.Config.Database.Uri != "" {
 		// lName := "database:" + a.Config.Database.Driver
 		// loader, ok := libmanager.GetLoader(lName)
 		loader, e := a.GetDefaultLibraryLoader("database")

@@ -67,6 +67,7 @@ type ServerConfig struct {
 
 type DatabaseConfig struct {
 	Driver          string            `mapstructure:"driver"` // supported: "postgres", "mysql", "sqlite", "mongodb"
+	Uri             string            `mapstructure:"uri"`
 	Scheme          string            `mapstructure:"scheme"`
 	Host            string            `mapstructure:"host"`
 	Port            int               `mapstructure:"port"`
