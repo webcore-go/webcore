@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/webcore-go/webcore/infra/config"
@@ -22,7 +23,7 @@ type AppContext struct {
 func (a *AppContext) Start() error {
 	libmanager := Instance().LibraryManager
 
-	if a.Config.App.Logging.Remote != nil && a.Config.App.Logging.Remote.Uri != "" {
+	if a.Config.App.Logging.Remote.Uri != "" {
 		loader, e := a.GetDefaultLibraryLoader("remotelog")
 		if e != nil {
 			return e
@@ -36,6 +37,13 @@ func (a *AppContext) Start() error {
 
 			// segera regiseter remote log handler
 			remoteLog := libLog.(port.IRemoteLog)
+			remoteLog.SetMinimumLevelCapture(slog.LevelError)
+			if len(a.Config.App.Logging.Remote.DefaultTags) > 0 {
+				remoteLog.SetDefaultTags(a.Config.App.Logging.Remote.DefaultTags)
+			}
+			if len(a.Config.App.Logging.Remote.DefaultContexts) > 0 {
+				remoteLog.SetDefaultContexts(a.Config.App.Logging.Remote.DefaultContexts)
+			}
 			logger.SetRemote(remoteLog)
 			a.Web.Use(remoteLog.NewHandler())
 		}

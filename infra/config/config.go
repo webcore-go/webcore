@@ -43,17 +43,19 @@ type FeaturesConfig struct {
 }
 
 type LoggingConfig struct {
-	Level  string               `mapstructure:"level"`
-	Format string               `mapstructure:"format"`
-	Output string               `mapstructure:"output"`
-	Remote *RemoteLoggingConfig `mapstructure:"remote"`
+	Level  string              `mapstructure:"level"`
+	Format string              `mapstructure:"format"`
+	Output string              `mapstructure:"output"`
+	Remote RemoteLoggingConfig `mapstructure:"remote"`
 }
 
 type RemoteLoggingConfig struct {
-	Driver     string `mapstructure:"driver"`
-	Uri        string `mapstructure:"uri"`
-	SampleRate int    `mapstructure:"sample_rate"`
-	Structured bool   `mapstructure:"structured"`
+	Driver          string                    `mapstructure:"driver"`
+	Uri             string                    `mapstructure:"uri"`
+	SampleRate      int                       `mapstructure:"sample_rate"`
+	Structured      bool                      `mapstructure:"structured"`
+	DefaultTags     map[string]string         `mapstructure:"default_tags"`
+	DefaultContexts map[string]map[string]any `mapstructure:"default_contexts"`
 }
 
 type CORSConfig struct {

@@ -69,7 +69,35 @@ func logDefault() *Logger { return defaultLogger.Load() }
 func SetRemote(remote port.IRemoteLog) {
 	l := logDefault()
 	l.remote = remote
-	l.remote.SetLevel(l.level)
+	l.remote.SetMinimumLevelLog(l.level)
+}
+
+func SetRemoteTag(key string, value string) {
+	l := logDefault()
+	if l.remote != nil {
+		l.remote.SetTag(key, value)
+	}
+}
+
+func SetRemoteContext(key string, context map[string]any) {
+	l := logDefault()
+	if l.remote != nil {
+		l.remote.SetContext(key, context)
+	}
+}
+
+func RemoteCaptureMessage(msg string) {
+	l := logDefault()
+	if l.remote != nil {
+		l.remote.CaptureMessage(msg)
+	}
+}
+
+func RemoteCaptureError(err error) {
+	l := logDefault()
+	if l.remote != nil {
+		l.remote.CaptureError(err)
+	}
 }
 
 // Log logs a message with the given level
