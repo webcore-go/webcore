@@ -43,9 +43,17 @@ type FeaturesConfig struct {
 }
 
 type LoggingConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
-	Output string `mapstructure:"output"`
+	Level  string               `mapstructure:"level"`
+	Format string               `mapstructure:"format"`
+	Output string               `mapstructure:"output"`
+	Remote *RemoteLoggingConfig `mapstructure:"remote"`
+}
+
+type RemoteLoggingConfig struct {
+	Driver     string `mapstructure:"driver"`
+	Uri        string `mapstructure:"uri"`
+	SampleRate int    `mapstructure:"sample_rate"`
+	Structured bool   `mapstructure:"structured"`
 }
 
 type CORSConfig struct {
@@ -122,6 +130,7 @@ type PubSubConfig struct {
 	ProjectID       string            `mapstructure:"project_id"`
 	Subscription    string            `mapstructure:"subscription"`
 	Topic           string            `mapstructure:"topic"`
+	NoCredentials   bool              `mapstructure:"no_credentials"`
 	CredentialsPath string            `mapstructure:"credentials"`
 	Credentials     *GoogleCredential `mapstructure:"credentials_data"`
 	Consumer        ConsumerConfig    `mapstructure:"consumer"`

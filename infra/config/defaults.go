@@ -3,27 +3,31 @@ package config
 func (c *Config) SetDefaults() map[string]any {
 	return map[string]any{
 		// App
-		"app.name":                   "webcore-go",
-		"app.version":                "1.0.0",
-		"app.environment":            "development",
-		"app.features.recovery":      false,
-		"app.features.tracing":       false,
-		"app.features.metrics":       false,
-		"app.features.profiling":     false,
-		"app.logging.level":          "info",
-		"app.logging.format":         "json",
-		"app.logging.output":         "stdout",
-		"app.security_headers":       false,
-		"app.cors.allow_origins":     []string{"*"},
-		"app.cors.allow_methods":     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		"app.cors.allow_headers":     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		"app.cors.expose_headers":    []string{"Content-Length"},
-		"app.cors.allow_credentials": true,
-		"app.cors.max_age":           "24h", // 24 hours
-		"app.rate_limit.enabled":     false,
-		"app.rate_limit.max":         1000,
-		"app.module.base_path":       "./libs",
-		"app.module.disabled":        []string{},
+		"app.name":                       "webcore-go",
+		"app.version":                    "1.0.0",
+		"app.environment":                "development",
+		"app.features.recovery":          false,
+		"app.features.tracing":           false,
+		"app.features.metrics":           false,
+		"app.features.profiling":         false,
+		"app.logging.level":              "info",
+		"app.logging.format":             "json",
+		"app.logging.output":             "stdout",
+		"app.logging.remote.driver":      "sentry",
+		"app.logging.remote.uri":         "",
+		"app.logging.remote.sample_rate": 1.0,
+		"app.logging.remote.structured":  true,
+		"app.security_headers":           false,
+		"app.cors.allow_origins":         []string{"*"},
+		"app.cors.allow_methods":         []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		"app.cors.allow_headers":         []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		"app.cors.expose_headers":        []string{"Content-Length"},
+		"app.cors.allow_credentials":     true,
+		"app.cors.max_age":               "24h", // 24 hours
+		"app.rate_limit.enabled":         false,
+		"app.rate_limit.max":             1000,
+		"app.module.base_path":           "./libs",
+		"app.module.disabled":            []string{},
 
 		// Server
 		"server.host":          "0.0.0.0",
@@ -70,10 +74,11 @@ func (c *Config) SetDefaults() map[string]any {
 		"kafka.offset_reset": "earliest",
 
 		// PubSub
-		"pubsub.project_id":   "",
-		"pubsub.topic":        "",
-		"pubsub.subscription": "",
-		"pubsub.credentials":  "",
+		"pubsub.project_id":     "",
+		"pubsub.topic":          "",
+		"pubsub.subscription":   "",
+		"pubsub.no_credentials": false,
+		"pubsub.credentials":    "",
 
 		// PubSub Consumer
 		"pubsub.consumer.maxmessages":             10,

@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/webcore-go/webcore/infra/config"
+	"github.com/webcore-go/webcore/infra/logger"
 	"github.com/webcore-go/webcore/port"
 )
 
@@ -20,6 +21,25 @@ type AppContext struct {
 
 func (a *AppContext) Start() error {
 	libmanager := Instance().LibraryManager
+
+	if a.Config.App.Logging.Remote != nil && a.Config.App.Logging.Remote.Uri != "" {
+		loader, e := a.GetDefaultLibraryLoader("remotelog")
+		if e != nil {
+			return e
+		}
+
+		if loader != nil {
+			libLog, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.App.Logging.Remote, a.Config.App.Environment)
+			if err != nil {
+				return err
+			}
+
+			// segera regiseter remote log handler
+			remoteLog := libLog.(port.IRemoteLog)
+			logger.SetRemote(remoteLog)
+			a.Web.Use(remoteLog.NewHandler())
+		}
+	}
 
 	// Initialize database if configured
 	if a.Config.Database.Host != "" || a.Config.Database.Uri != "" {

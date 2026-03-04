@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/webcore-go/webcore/app/helper"
+	"github.com/webcore-go/webcore/port"
 )
 
 var defaultLogger atomic.Pointer[Logger]
@@ -16,6 +17,8 @@ var defaultLogger atomic.Pointer[Logger]
 type Logger struct {
 	context context.Context
 	logger  *slog.Logger
+	remote  port.IRemoteLog
+	level   slog.Level
 }
 
 func PrepareLogger(ctx context.Context, level string) *Logger {
@@ -35,7 +38,6 @@ func PrepareLogger(ctx context.Context, level string) *Logger {
 		default:
 			logLevel = slog.LevelInfo
 		}
-
 		slog.SetLogLoggerLevel(logLevel)
 		logger := slog.Default()
 		// handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -52,6 +54,7 @@ func PrepareLogger(ctx context.Context, level string) *Logger {
 		log := &Logger{
 			context: ctx,
 			logger:  logger,
+			level:   logLevel,
 		}
 		defaultLogger.Store(log)
 
@@ -63,14 +66,26 @@ func PrepareLogger(ctx context.Context, level string) *Logger {
 // Default returns the default [Logger].
 func logDefault() *Logger { return defaultLogger.Load() }
 
+func SetRemote(remote port.IRemoteLog) {
+	l := logDefault()
+	l.remote = remote
+	l.remote.SetLevel(l.level)
+}
+
 // Log logs a message with the given level
 func (l *Logger) Log(level slog.Level, msg string, args ...any) {
 	l.logger.Log(l.context, level, msg, args...)
+	if l.remote != nil {
+		l.remote.Log(level, msg, args...)
+	}
 }
 
 // Log logs a message with the given level
 func (l *Logger) LogJson(level slog.Level, msg string, obj any) {
 	l.logger.Log(l.context, level, msg+helper.ToLogJSON(obj))
+	if l.remote != nil {
+		l.remote.Log(level, msg+helper.ToLogJSON(obj))
+	}
 }
 
 // Debug logs a debug message
