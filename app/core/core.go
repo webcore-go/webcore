@@ -98,7 +98,9 @@ func (a *AppContext) Start() error {
 	}
 
 	// Initialize Kafka if configured
-	if len(a.Config.Kafka.Brokers) > 0 {
+	if a.Config.Kafka.Enabled && len(a.Config.Kafka.Brokers) > 0 {
+		logger.Info("Kafka enabled", "brokers", a.Config.Kafka.Brokers)
+
 		// a.SetupKafka("default", a.Config.Kafka)
 		loaderProducer, okProducer := libmanager.GetLoader("kafka:producer")
 		if okProducer {

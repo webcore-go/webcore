@@ -72,6 +72,7 @@ func (c *Config) SetEnvBindings() map[string]string {
 		"redis.db":       "REDIS_DB",
 
 		// Kafka
+		"kafka.enabled":      "KAFKA_ENABLED",
 		"kafka.brokers":      "KAFKA_BROKERS",
 		"kafka.group_id":     "KAFKA_GROUP_ID",
 		"kafka.topics":       "KAFKA_TOPICS",
