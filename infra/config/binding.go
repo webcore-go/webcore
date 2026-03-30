@@ -6,6 +6,7 @@ func (c *Config) SetEnvBindings() map[string]string {
 		"app.name":                            "APP_NAME",
 		"app.version":                         "APP_VERSION",
 		"app.environment":                     "APP_ENVIRONMENT",
+		"app.features.logging":                "APP_FEATURES_LOGGING",
 		"app.features.recovery":               "APP_FEATURES_RECOVERY",
 		"app.features.tracing":                "APP_FEATURES_TRACING",
 		"app.features.metrics":                "APP_FEATURES_METRICS",

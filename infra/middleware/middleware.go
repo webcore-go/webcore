@@ -29,11 +29,13 @@ func SetupGlobalMiddleware(app *fiber.App, cfg *config.Config) {
 		}))
 	}
 	// Logger middleware
-	app.Use(flogger.New(flogger.Config{
-		Output:     helper.FiberLoggerOutput(cfg.App.Logging.Output),
-		Format:     cfg.App.Logging.Format, //  "${time} | ${status} | ${latency} | ${ip} | ${method} | ${path} | ${error}\n",
-		TimeFormat: "02-Jan-2006 15:04:05",
-	}))
+	if cfg.App.Features.Logging {
+		app.Use(flogger.New(flogger.Config{
+			Output:     helper.FiberLoggerOutput(cfg.App.Logging.Output),
+			Format:     cfg.App.Logging.Format, //  "${time} | ${status} | ${latency} | ${ip} | ${method} | ${path} | ${error}\n",
+			TimeFormat: "02-Jan-2006 15:04:05",
+		}))
+	}
 
 	corsConfig := cors.Config{
 		AllowOrigins:     strings.Join(cfg.App.CORS.AllowOrigins, ","),
