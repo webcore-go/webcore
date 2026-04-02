@@ -39,6 +39,7 @@ func (c *Config) SetDefaults() map[string]any {
 		"server.write_timeout": "30s",
 
 		// Auth
+		"auth.directory":      ".",
 		"auth.control":        "RBAC",
 		"auth.store":          "yaml",
 		"auth.type":           "jwt",

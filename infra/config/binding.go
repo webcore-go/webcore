@@ -39,6 +39,7 @@ func (c *Config) SetEnvBindings() map[string]string {
 		"server.write_timeout": "SERVER_WRITE_TIMEOUT",
 
 		// Auth
+		"auth.directory":      "AUTH_DIRECTORY",
 		"auth.control":        "AUTH_CONTROL",
 		"auth.store":          "AUTH_STORE",
 		"auth.type":           "AUTH_TYPE",

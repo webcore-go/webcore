@@ -162,9 +162,10 @@ type ProducerConfig struct {
 }
 
 type AuthConfig struct {
-	Control      string        `mapstructure:"control"` // e.g., "RBAC", "ABAC"
-	Store        string        `mapstructure:"store"`   // e.g., "yaml", "db"
-	Type         string        `mapstructure:"type"`    // e.g., "jwt", "apikey"
+	Directory    string        `mapstructure:"directory"` // e.g., "RBAC", "ABAC"
+	Control      string        `mapstructure:"control"`   // e.g., "RBAC", "ABAC"
+	Store        string        `mapstructure:"store"`     // e.g., "yaml", "db"
+	Type         string        `mapstructure:"type"`      // e.g., "jwt", "apikey"
 	SecretKey    string        `mapstructure:"secret_key"`
 	ExpiresIn    time.Duration `mapstructure:"expires_in"`     // In seconds
 	APIKeyHeader string        `mapstructure:"api_key_header"` // Header name for API key (default: "X-API-Key")

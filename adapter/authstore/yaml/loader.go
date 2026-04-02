@@ -26,7 +26,7 @@ func (a *YamlLoader) Name() string {
 
 func (l *YamlLoader) Init(args ...any) (port.Library, error) {
 	config := args[1].(config.AuthConfig)
-	backend, err := YamlBackend(config.Control)
+	backend, err := YamlBackend(config.Control, config.Directory)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ type AuthStoreYAML struct {
 	Loaded  bool
 }
 
-func YamlBackend(control string) (*AuthStoreYAML, error) {
+func YamlBackend(control string, directory string) (*AuthStoreYAML, error) {
 	y := &AuthStoreYAML{
 		ControlType: control,
 		Storage: &store.Storage{
@@ -58,10 +58,14 @@ func YamlBackend(control string) (*AuthStoreYAML, error) {
 		Loaded: false,
 	}
 
+	dir := []string{}
+	if directory != "" && directory != "." {
+		dir = []string{directory}
+	}
 	switch control {
 	case "ABAC":
 		var tmp store.StorageABAC
-		if err := appConfig.LoadConfig("access", &tmp, "access", "yaml", []string{}); err != nil {
+		if err := appConfig.LoadConfig("access", &tmp, "access", "yaml", dir); err != nil {
 			return nil, err
 		}
 
@@ -76,7 +80,7 @@ func YamlBackend(control string) (*AuthStoreYAML, error) {
 		}
 	default:
 		var tmp store.StorageRBAC
-		if err := appConfig.LoadConfig("access", &tmp, "access", "yaml", []string{}); err != nil {
+		if err := appConfig.LoadConfig("access", &tmp, "access", "yaml", dir); err != nil {
 			return nil, err
 		}
 
