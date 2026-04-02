@@ -36,6 +36,7 @@ type RateLimitConfig struct {
 }
 
 type FeaturesConfig struct {
+	Logging   bool `mapstructure:"logging"`
 	Recovery  bool `mapstructure:"recovery"`
 	Metrics   bool `mapstructure:"metrics"`
 	Tracing   bool `mapstructure:"tracing"`

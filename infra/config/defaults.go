@@ -6,6 +6,7 @@ func (c *Config) SetDefaults() map[string]any {
 		"app.name":                            "webcore-go",
 		"app.version":                         "1.0.0",
 		"app.environment":                     "development",
+		"app.features.logging":                true,
 		"app.features.recovery":               false,
 		"app.features.tracing":                false,
 		"app.features.metrics":                false,
