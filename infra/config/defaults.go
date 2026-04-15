@@ -21,6 +21,7 @@ func (c *Config) SetDefaults() map[string]any {
 		"app.logging.remote.default_tags":     map[string]string{},
 		"app.logging.remote.default_contexts": map[string]map[string]any{},
 		"app.security_headers":                false,
+		"app.additional_headers":              []string{},
 		"app.cors.allow_origins":              []string{"*"},
 		"app.cors.allow_methods":              []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		"app.cors.allow_headers":              []string{"Origin", "Content-Type", "Accept", "Authorization"},

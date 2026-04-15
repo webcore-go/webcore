@@ -21,6 +21,7 @@ func (c *Config) SetEnvBindings() map[string]string {
 		"app.logging.remote.default_tags":     "APP_LOGGING_REMOTE_DEFAULT_TAGS",
 		"app.logging.remote.default_contexts": "APP_LOGGING_REMOTE_DEFAULT_CONTEXTS",
 		"app.security_headers":                "APP_SECURITY_HEADERS",
+		"app.additional_headers":              "APP_ADDITIONAL_HEADERS",
 		"app.cors.allow_origins":              "APP_CORS_ALLOW_ORIGINS",
 		"app.cors.allow_methods":              "APP_CORS_ALLOW_METHODS",
 		"app.cors.allow_headers":              "APP_CORS_ALLOW_HEADERS",

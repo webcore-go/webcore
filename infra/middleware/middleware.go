@@ -70,6 +70,10 @@ func SetupGlobalMiddleware(app *fiber.App, cfg *config.Config) {
 		app.Use(SecurityHeadersMiddleware())
 	}
 
+	if len(cfg.App.AdditionalHeaders) > 0 {
+		app.Use(AdditionalHeadersMiddleware(cfg.App.AdditionalHeaders))
+	}
+
 	if cfg.App.RateLimit.Enabled {
 		app.Use(DefaultRateLimit(cfg.App.RateLimit))
 	}
@@ -84,6 +88,26 @@ func SecurityHeadersMiddleware() fiber.Handler {
 		c.Set("X-XSS-Protection", "1; mode=block")
 		c.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 		c.Set("Content-Security-Policy", "default-src 'self'")
+
+		return c.Next()
+	}
+}
+
+func AdditionalHeadersMiddleware(headers []string) fiber.Handler {
+	mapHeader := map[string]string{}
+	for _, v := range headers {
+		parts := strings.SplitN(v, ":", 2)
+		if len(parts) == 2 {
+			key := strings.Trim(parts[0], " ")
+			val := strings.Trim(parts[1], " ")
+			mapHeader[key] = val
+		}
+	}
+
+	return func(c *fiber.Ctx) error {
+		for k, v := range mapHeader {
+			c.Set(k, v)
+		}
 
 		return c.Next()
 	}

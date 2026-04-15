@@ -33,6 +33,12 @@ func newResponse(response *Response) *Response {
 		response.StackTrace = strings.Split(string(debug.Stack()), "\n")
 	}
 
+	// Hilangkan detail error dan stack trace untuk selain ENV 'development'
+	if Environment != "development" {
+		response.Details = nil
+		response.StackTrace = []string{}
+	}
+
 	return response
 }
 

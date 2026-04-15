@@ -19,15 +19,16 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name            string          `mapstructure:"name"`
-	Version         string          `mapstructure:"version"`
-	Environment     string          `mapstructure:"environment"`
-	Features        FeaturesConfig  `mapstructure:"features"`
-	Logging         LoggingConfig   `mapstructure:"logging"`
-	CORS            CORSConfig      `mapstructure:"cors"`
-	RateLimit       RateLimitConfig `mapstructure:"rate_limit"`
-	SecurityHeaders bool            `mapstructure:"security_headers"`
-	Module          ModuleConfig    `mapstructure:"module"`
+	Name              string          `mapstructure:"name"`
+	Version           string          `mapstructure:"version"`
+	Environment       string          `mapstructure:"environment"`
+	Features          FeaturesConfig  `mapstructure:"features"`
+	Logging           LoggingConfig   `mapstructure:"logging"`
+	CORS              CORSConfig      `mapstructure:"cors"`
+	RateLimit         RateLimitConfig `mapstructure:"rate_limit"`
+	SecurityHeaders   bool            `mapstructure:"security_headers"`
+	AdditionalHeaders []string        `mapstructure:"additional_headers"`
+	Module            ModuleConfig    `mapstructure:"module"`
 }
 
 type RateLimitConfig struct {
