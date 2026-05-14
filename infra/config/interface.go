@@ -20,6 +20,11 @@ type Configurable interface {
 	SetEnvBindings() map[string]string
 }
 
+type SubConfigurable interface {
+	Configurable
+	GetOthers() map[string]Configurable
+}
+
 func LoadDefaultConfig[T Configurable](c T) error {
 	return LoadConfig("", c, "config", "yaml", []string{})
 }
@@ -83,6 +88,18 @@ func LoadConfig[T Configurable](prefix string, c T, file string, ext string, pat
 
 	if err := holder.Engine.Unmarshal(c); err != nil {
 		return err
+	}
+
+	// Type assertion on type parameter requires conversion to 'any' first
+	sub, ok := any(c).(SubConfigurable)
+	if ok {
+		oth := sub.GetOthers()
+		if len(oth) > 0 {
+			for _, csub := range oth {
+				setPriorityDefaults(csub, holder, replacer, prefix)
+				holder.Engine.Unmarshal(csub)
+			}
+		}
 	}
 
 	return nil

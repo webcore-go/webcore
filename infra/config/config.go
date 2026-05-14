@@ -16,6 +16,7 @@ type Config struct {
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	PubSub   PubSubConfig   `mapstructure:"pubsub"`
 	Auth     AuthConfig     `mapstructure:"auth"`
+	Others   map[string]Configurable
 }
 
 type AppConfig struct {
@@ -177,6 +178,18 @@ type AuthConfig struct {
 type ModuleConfig struct {
 	Disabled []string `mapstructure:"disabled"`
 	BasePath string   `mapstructure:"base_path"`
+}
+
+func (c *Config) GetOthers() map[string]Configurable {
+	return c.Others
+}
+
+func (c *Config) AddItem(key string, item Configurable) {
+	if c.Others == nil {
+		c.Others = make(map[string]Configurable)
+	}
+
+	c.Others[key] = item
 }
 
 func (c *Config) GetFiberConfig(errorHandler fiber.ErrorHandler) fiber.Config {
