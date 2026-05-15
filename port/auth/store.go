@@ -8,7 +8,8 @@ import (
 )
 
 type IStore interface {
-	GetUserAuthInfo(ctx *fiber.Ctx, validator IAuthValidator) (IUserAuthInfo, error)
+	GetUserLoginInfo(ctx *fiber.Ctx, username string, password string) (IUserAuthInfo, error) // digunakan saat login
+	GetUserAuthInfo(ctx *fiber.Ctx, validator IAuthValidator) (IUserAuthInfo, error)          // digunakan untuk verifikasi userkey
 	GetResourceInfo(method string, path string) (IResourceInfo, error)
 }
 

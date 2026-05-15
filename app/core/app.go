@@ -117,8 +117,6 @@ func (a *App) setupAuthMiddleware() {
 			return c.Next()
 		}
 	} else {
-		// lName := "authentication:" + a.Context.Config.Auth.Type
-		// loader, ok := a.LibraryManager.GetLoader(lName)
 		loader, e := a.Context.GetDefaultLibraryLoader("authentication")
 		if e != nil {
 			logger.Fatal(e.Error())

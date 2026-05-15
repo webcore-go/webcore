@@ -159,6 +159,42 @@ func (a *AppContext) Destroy() error {
 	return nil
 }
 
+func (a *AppContext) StartSingletonInstance(name string, args ...any) (port.Library, error) {
+	loader, e := a.GetLibraryLoader(name)
+	if e != nil {
+		return nil, e
+	}
+
+	return a.LoadSingletonInstance(loader, args...)
+}
+
+func (a *AppContext) StartDefaultSingletonInstance(name string, args ...any) (port.Library, error) {
+	loader, e := a.GetDefaultLibraryLoader(name)
+	if e != nil {
+		return nil, e
+	}
+
+	return a.LoadSingletonInstance(loader, args...)
+}
+
+func (a *AppContext) StartInstance(name string, key string, args ...any) (port.Library, error) {
+	loader, e := a.GetLibraryLoader(name)
+	if e != nil {
+		return nil, e
+	}
+
+	return a.LoadInstance(loader, key, args...)
+}
+
+func (a *AppContext) StartDefaultInstance(name string, key string, args ...any) (port.Library, error) {
+	loader, e := a.GetDefaultLibraryLoader(name)
+	if e != nil {
+		return nil, e
+	}
+
+	return a.LoadInstance(loader, key, args...)
+}
+
 func (a *AppContext) GetLibraryLoader(name string) (LibraryLoader, error) {
 	loader, ok := Instance().LibraryManager.GetLoader(name)
 	if !ok {
@@ -202,6 +238,8 @@ func (a *AppContext) getDefaultName(name string) string {
 		name = name + ":" + a.Config.Database.Driver
 	case "authstorage":
 		name = name + ":" + a.Config.Auth.Store
+	case "authsession":
+		name = name + ":" + a.Config.Auth.Session.Backend
 	case "authentication":
 		name = name + ":" + a.Config.Auth.Type
 	}

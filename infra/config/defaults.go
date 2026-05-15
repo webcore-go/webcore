@@ -41,14 +41,19 @@ func (c *Config) SetDefaults() map[string]any {
 		"server.write_timeout": "30s",
 
 		// Auth
-		"auth.directory":      ".",
-		"auth.control":        "RBAC",
-		"auth.store":          "yaml",
-		"auth.type":           "jwt",
-		"auth.secret_key":     "",
-		"auth.expires_in":     "24h", // 24 hours
-		"auth.api_key_header": "X-API-Key",
-		"auth.api_key_prefix": "",
+		"auth.directory":            ".",
+		"auth.control":              "RBAC",
+		"auth.store":                "yaml",
+		"auth.type":                 "jwt",
+		"auth.secret_key":           "",
+		"auth.session.backend":      "",
+		"auth.session.expires_in":   "2h", // 2 hours
+		"auth.session.refresh_in":   "7d", // 2 days
+		"auth.session.content_type": "application/x-www-form-urlencoded",
+		"auth.session.username_key": "",
+		"auth.session.password_key": "",
+		"auth.api_key_header":       "X-API-Key",
+		"auth.api_key_prefix":       "",
 
 		// Database
 		"database.driver":            "postgres",

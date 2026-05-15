@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/webcore-go/webcore/adapter/authsession/session"
 	"github.com/webcore-go/webcore/app/core"
 	"github.com/webcore-go/webcore/app/out"
 	"github.com/webcore-go/webcore/infra/config"
@@ -37,23 +38,35 @@ func (a *AuthN) Install(args ...any) error {
 	}
 
 	context := args[0].(*core.AppContext)
-	libmanager := core.Instance().LibraryManager
-	// lName := "authstorage:" + context.Config.Auth.Store
-	// loader, ok := libmanager.GetLoader(lName)
-	loader, e := context.GetDefaultLibraryLoader("authstorage")
+	/*loader, e := context.GetDefaultLibraryLoader("authstorage")
 	if e != nil {
 		return e
-	}
+	}*/
 
-	// Initialize module components
-	library, err := libmanager.LoadSingletonFromLoader(loader, context, config)
+	// Initialize AuthStore
+	// library, err := context.LoadSingletonInstance(loader, context, config)
+	library, err := context.StartDefaultSingletonInstance("authstorage", context, config)
 	if err != nil {
-		return fmt.Errorf("Library AuthStore tidak ditemukan %v", err)
+		return err
 	}
 
 	authstore := library.(auth.IAuthStore)
 	storeWrapper := auth.NewStoreWrapper(authstore.GetStore())
-	a.Authenticator = auth.NewAuthenticator(a.Validator, storeWrapper)
+
+	/*loader2, e := context.GetDefaultLibraryLoader("authsession")
+	if e != nil {
+		return e
+	}*/
+
+	// library2, err := context.LoadSingletonInstance(loader2, context, config)
+	library2, err := context.StartDefaultSingletonInstance("authsession", context, config)
+	if err != nil {
+		return err
+	}
+
+	authsession := library2.(*session.AuthSession)
+
+	a.Authenticator = auth.NewAuthenticator(config, a.Validator, storeWrapper, authsession)
 
 	// lzName := "authz:" + strings.ToLower(context.Config.Auth.Control)
 	// zloader, ok := libmanager.GetLoader(lzName)
@@ -87,7 +100,7 @@ func (a *AuthN) GetAuthenticatonHandler() fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(out.Error(fiber.StatusUnauthorized, 2, "UNAUTHORIZED", err.Error()))
 		}
 
-		if err := a.Authorizer.Check(a.Authenticator.Loader.GetLoadedUser(), c.Method(), c.Path()); err != nil {
+		if err := a.Authorizer.Check(a.Authenticator.AuthStore.GetLoadedUser(), c.Method(), c.Path()); err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(out.Error(fiber.StatusUnauthorized, 2, "UNAUTHORIZED", err.Error()))
 		}
 

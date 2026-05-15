@@ -165,14 +165,23 @@ type ProducerConfig struct {
 }
 
 type AuthConfig struct {
-	Directory    string        `mapstructure:"directory"` // e.g., "RBAC", "ABAC"
-	Control      string        `mapstructure:"control"`   // e.g., "RBAC", "ABAC"
-	Store        string        `mapstructure:"store"`     // e.g., "yaml", "db"
-	Type         string        `mapstructure:"type"`      // e.g., "jwt", "apikey"
-	SecretKey    string        `mapstructure:"secret_key"`
-	ExpiresIn    time.Duration `mapstructure:"expires_in"`     // In seconds
-	APIKeyHeader string        `mapstructure:"api_key_header"` // Header name for API key (default: "X-API-Key")
-	APIKeyPrefix string        `mapstructure:"api_key_prefix"` // Optional prefix for API key validation
+	Directory    string            `mapstructure:"directory"` // e.g., "RBAC", "ABAC"
+	Control      string            `mapstructure:"control"`   // e.g., "RBAC", "ABAC"
+	Store        string            `mapstructure:"store"`     // e.g., "yaml", "db"
+	Type         string            `mapstructure:"type"`      // e.g., "jwt", "apikey"
+	Session      AuthSessionConfig `mapstructure:"session"`
+	SecretKey    string            `mapstructure:"secret_key"`
+	APIKeyHeader string            `mapstructure:"api_key_header"` // Header name for API key (default: "X-API-Key")
+	APIKeyPrefix string            `mapstructure:"api_key_prefix"` // Optional prefix for API key validation
+}
+
+type AuthSessionConfig struct {
+	Backend     string        `mapstructure:"backend"`      // e.g., "memory", "file", "db", "redis"
+	ExpiresIn   time.Duration `mapstructure:"expires_in"`   // In seconds
+	RefreshIn   time.Duration `mapstructure:"refresh_in"`   // In seconds
+	ContentType string        `mapstructure:"content_type"` // e.g., "application/json", "application/x-www-form-urlencoded"
+	UsernameKey string        `mapstructure:"username_key"`
+	PasswordKey string        `mapstructure:"password_key"`
 }
 
 type ModuleConfig struct {
