@@ -130,11 +130,17 @@ func (a *App) setupAuthMiddleware() {
 
 		authn := library.(auth.IAuthenticationManager)
 		handler = authn.GetAuthenticatonHandler()
+		logger.Info("Library Authentication loaded",
+			"type", a.Context.Config.Auth.Type,
+			"access", a.Context.Config.Auth.Store,
+			"control", a.Context.Config.Auth.Control,
+			"session", a.Context.Config.Auth.Session.Backend)
+
 	}
 
 	// Apply authentication to protected routes
 	a.Context.Root = a.Context.Web.Group(a.Context.Config.Server.PathPrefix, handler)
-
+	a.Context.AuthHandler = handler
 }
 
 // setupRoutes sets up application routes

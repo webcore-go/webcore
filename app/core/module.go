@@ -28,7 +28,7 @@ type Module interface {
 	Dependencies() []string
 
 	// Config returns the module-specific configuration
-	Config() config.Configurable
+	Config() config.ConfigObject
 
 	// Routes returns the routes provided by this module
 	Routes() []*ModuleRoute
@@ -46,10 +46,11 @@ type Module interface {
 }
 
 type ModuleRoute struct {
-	Method  string
-	Path    string
-	Handler fiber.Handler
-	Root    fiber.Router
+	Method   string
+	Path     string
+	Handler  fiber.Handler
+	Handlers []fiber.Handler
+	Root     fiber.Router
 }
 
 // ModuleManager manages module registration and loading

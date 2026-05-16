@@ -13,11 +13,12 @@ import (
 
 // Context represents shared dependencies that can be injected into modules
 type AppContext struct {
-	Context  context.Context
-	Config   *config.Config
-	Web      *fiber.App
-	Root     fiber.Router
-	EventBus *EventBus
+	Context     context.Context
+	Config      *config.Config
+	Web         *fiber.App
+	Root        fiber.Router
+	AuthHandler fiber.Handler
+	EventBus    *EventBus
 }
 
 func (a *AppContext) Start() error {
@@ -51,9 +52,7 @@ func (a *AppContext) Start() error {
 
 	// Initialize database if configured
 	if a.Config.Database.Host != "" || a.Config.Database.Uri != "" {
-		// lName := "database:" + a.Config.Database.Driver
-		// loader, ok := libmanager.GetLoader(lName)
-		loader, e := a.GetDefaultLibraryLoader("database")
+		/*loader, e := a.GetDefaultLibraryLoader("database")
 		if e != nil {
 			return e
 		}
@@ -63,18 +62,22 @@ func (a *AppContext) Start() error {
 			if err != nil {
 				return err
 			}
+		}*/
+		_, err := a.StartDefaultSingletonInstance("database", a.Context, a.Config.Database)
+		if err != nil {
+			return err
 		}
+
+		logger.Info("Library Database loaded", "driver", a.Config.Database.Driver)
 	}
 
 	// Initialize database if configured
 	if a.Config.Memory.Enabled {
-		loader, ok := libmanager.GetLoader("memory")
+		name := "memory"
+		loader, ok := libmanager.GetLoader(name)
 		if !ok {
-			loader, _ = libmanager.GetLoader("cache:memory") // tidak perlu error kalau library tidak ditemukan
-			// loader, ok = libmanager.GetLoader("cache:memory")
-			// if !ok {
-			// 	return fmt.Errorf("LibraryLoader 'cache:memory' tidak ditemukan")
-			// }
+			name = "cache:memory"
+			loader, _ = libmanager.GetLoader(name) // tidak perlu error kalau library tidak ditemukan
 		}
 
 		if loader != nil {
@@ -82,19 +85,19 @@ func (a *AppContext) Start() error {
 			if err != nil {
 				return err
 			}
+
+			logger.Info("Library Cache", "loaded", name)
 		}
 	}
 
 	// Initialize Redis if configured
 	if a.Config.Redis.Host != "" {
+		name := "redis"
 		// a.SetupRedis(a.Config.Redis)
-		loader, ok := libmanager.GetLoader("redis")
+		loader, ok := libmanager.GetLoader(name)
 		if !ok {
-			loader, _ = libmanager.GetLoader("cache:redis") // tidak perlu error kalau library tidak ditemukan
-			// loader, ok = libmanager.GetLoader("cache:redis")
-			// if !ok {
-			// 	return fmt.Errorf("LibraryLoader 'redis' tidak ditemukan")
-			// }
+			name = "cache:redis"
+			loader, _ = libmanager.GetLoader(name) // tidak perlu error kalau library tidak ditemukan
 		}
 
 		if loader != nil {
@@ -102,13 +105,13 @@ func (a *AppContext) Start() error {
 			if err != nil {
 				return err
 			}
+
+			logger.Info("Library Cache", "loaded", name, "host", a.Config.Redis.Host)
 		}
 	}
 
 	// Initialize Kafka if configured
 	if a.Config.Kafka.Enabled && len(a.Config.Kafka.Brokers) > 0 {
-		logger.Info("Kafka enabled", "brokers", a.Config.Kafka.Brokers)
-
 		// a.SetupKafka("default", a.Config.Kafka)
 		loaderProducer, okProducer := libmanager.GetLoader("kafka:producer")
 		if okProducer {
@@ -127,6 +130,8 @@ func (a *AppContext) Start() error {
 		// if !okProducer && !okConsumer {
 		// 	return fmt.Errorf("LibraryLoader 'kafka' tidak ditemukan")
 		// }
+
+		logger.Info("Library Kafka loaded", "brokers", a.Config.Kafka.Brokers)
 	}
 
 	// Initialize PubSub if configured
@@ -143,6 +148,8 @@ func (a *AppContext) Start() error {
 			if err != nil {
 				return err
 			}
+
+			logger.Info("Library PubSub loaded", "Topic", a.Config.PubSub.Topic)
 		}
 	}
 
@@ -247,7 +254,12 @@ func (a *AppContext) getDefaultName(name string) string {
 }
 
 func AppendRouteToArray(routes []*ModuleRoute, route *ModuleRoute) []*ModuleRoute {
-	route.Root.Add(route.Method, route.Path, route.Handler)
+	handlers := route.Handlers
+	if len(handlers) == 0 && route.Handler != nil {
+		handlers = []fiber.Handler{route.Handler}
+	}
+
+	route.Root.Add(route.Method, route.Path, handlers...)
 
 	routes = append(routes, route)
 	return routes
