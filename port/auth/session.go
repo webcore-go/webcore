@@ -7,13 +7,13 @@ import (
 )
 
 type UserLoginInfo struct {
-	Username     string
-	AccessToken  *string
-	RefreshToken *string
-	ExpiresIn    time.Duration
-	RefreshIn    time.Duration
-	Groups       []string
-	Permissions  []string
+	Username     string        `json:"user_id"`
+	AccessToken  *string       `json:"access_token"`
+	RefreshToken *string       `json:"refresh_token"`
+	ExpiresIn    time.Duration `json:"expires_in"`
+	RefreshIn    time.Duration `json:"refresh_in"`
+	Groups       []string      `json:"user_role"`
+	Permissions  []string      `json:"user_permissions"`
 }
 
 type IAuthSessionStore interface {

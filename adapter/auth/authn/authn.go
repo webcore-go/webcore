@@ -8,6 +8,7 @@ import (
 	"github.com/webcore-go/webcore/app/core"
 	"github.com/webcore-go/webcore/app/out"
 	"github.com/webcore-go/webcore/infra/config"
+	"github.com/webcore-go/webcore/infra/logger"
 	"github.com/webcore-go/webcore/port/auth"
 )
 
@@ -50,6 +51,8 @@ func (a *AuthN) Install(args ...any) error {
 		return err
 	}
 
+	logger.Info("Library Authentication Storage loaded", "storage", library)
+
 	authstore := library.(auth.IAuthStore)
 	storeWrapper := auth.NewStoreWrapper(authstore.GetStore())
 
@@ -64,21 +67,11 @@ func (a *AuthN) Install(args ...any) error {
 		return err
 	}
 
+	logger.Info("Library Authentication Session Manager loaded", "session", library2)
+
 	authsession := library2.(*session.AuthSession)
 
 	a.Authenticator = auth.NewAuthenticator(config, a.Validator, storeWrapper, authsession)
-
-	// lzName := "authz:" + strings.ToLower(context.Config.Auth.Control)
-	// zloader, ok := libmanager.GetLoader(lzName)
-	// if !ok {
-	// 	return fmt.Errorf("LibraryLoader tidak ditemukan %s", lzName)
-	// }
-
-	// // Initialize module components
-	// zlibrary, err := libmanager.LoadSingletonFromLoader(zloader, context, config)
-	// if err != nil {
-	// 	return fmt.Errorf("Setup Authentication middleware %v", err)
-	// }
 
 	// authz := zlibrary.(auth.IAuthorizationManager)
 	authorizer, err := auth.NewAuthorization(storeWrapper)

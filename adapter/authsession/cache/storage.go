@@ -6,6 +6,7 @@ import (
 
 	"github.com/webcore-go/webcore/app/core"
 	"github.com/webcore-go/webcore/infra/config"
+	"github.com/webcore-go/webcore/infra/logger"
 	"github.com/webcore-go/webcore/port"
 	"github.com/webcore-go/webcore/port/auth"
 )
@@ -16,9 +17,9 @@ type MemoryCacheSessionStore struct {
 }
 
 func MemoryCacheSessionBackend(config config.AuthConfig, context *core.AppContext) (*MemoryCacheSessionStore, error) {
-	libMem, ok := context.GetDefaultSingletonInstance("cache")
+	libMem, ok := context.GetSingletonInstance(config.Session.Backend)
 	if !ok {
-		return nil, fmt.Errorf("Memory Session cannot be loaded, Cache Memory is disabled")
+		return nil, fmt.Errorf("Memory Session cannot be loaded, backend %s not found", config.Session.Backend)
 	}
 
 	memory := libMem.(port.ICacheMemory)
@@ -100,6 +101,7 @@ func (m *MemoryCacheSessionStore) GetByRefreshToken(refreshToken string) (*auth.
 func (m *MemoryCacheSessionStore) GetByUsername(username string) (*auth.UserLoginInfo, error) {
 	var value auth.UserLoginInfo
 	memkey2 := "authsess_usr_" + username
+	logger.Debug("Cek User sudah punya session", "user", username)
 	if ok := m.Memory.Get(memkey2, &value); !ok {
 		return nil, fmt.Errorf("Gagal menyimpan Login Info di Cache Memory")
 	}
