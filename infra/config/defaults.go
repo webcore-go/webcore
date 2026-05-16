@@ -47,8 +47,8 @@ func (c *Config) SetDefaults() map[string]any {
 		"auth.type":                 "jwt",
 		"auth.secret_key":           "",
 		"auth.session.backend":      "",
-		"auth.session.expires_in":   "2h", // 2 hours
-		"auth.session.refresh_in":   "7d", // 2 days
+		"auth.session.expires_in":   "2h",  // 2 hours
+		"auth.session.refresh_in":   "48h", // 2 days
 		"auth.session.content_type": "application/x-www-form-urlencoded",
 		"auth.session.username_key": "",
 		"auth.session.password_key": "",

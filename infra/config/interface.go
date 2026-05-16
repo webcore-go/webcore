@@ -15,31 +15,76 @@ type ConfigHolder struct {
 	KeyProcessed map[string]bool
 }
 
-type Configurable interface {
+type ConfigObject interface {
 	SetDefaults() map[string]any
 	SetEnvBindings() map[string]string
 }
 
-type SubConfigurable interface {
-	Configurable
-	GetOthers() map[string]Configurable
+type Configurable interface {
+	ConfigObject
+	AddOtherItem(key string, item ConfigObject)
+	GetOtherItem(key string) (ConfigObject, bool)
+	GetOthers() map[string]ConfigObject
 }
 
-func LoadDefaultConfig[T Configurable](c T) error {
+func ConfigAddItem(others *map[string]ConfigObject, key string, item ConfigObject) {
+	if *others == nil {
+		o := make(map[string]ConfigObject)
+		*others = o
+	}
+
+	(*others)[key] = item
+}
+
+func LoadDefaultConfig[T ConfigObject](c T) error {
 	return LoadConfig("", c, "config", "yaml", []string{})
 }
 
-func LoadDefaultConfigModule[T Configurable](moduleName string, c T) error {
+func LoadDefaultConfigWithAdditional[T Configurable](c T, additional map[string]ConfigObject) error {
+	for k, v := range additional {
+		c.AddOtherItem(k, v)
+	}
+
+	return LoadConfig("", c, "config", "yaml", []string{})
+}
+
+func LoadDefaultConfigModule[T ConfigObject](moduleName string, c T) error {
 	prefix := getKeyPrefix(moduleName, true)
 	return LoadConfig(prefix, c, "config", "yaml", []string{})
 }
 
-func LoadConfigModule[T Configurable](moduleName string, c T, file string, ext string, path []string) error {
+func LoadDefaultConfigModuleWithAdditional[T Configurable](moduleName string, c T, additional map[string]ConfigObject) error {
+	for k, v := range additional {
+		c.AddOtherItem(k, v)
+	}
+
+	prefix := getKeyPrefix(moduleName, true)
+	return LoadConfig(prefix, c, "config", "yaml", []string{})
+}
+
+func LoadConfigModule[T ConfigObject](moduleName string, c T, file string, ext string, path []string) error {
 	prefix := getKeyPrefix(moduleName, true)
 	return LoadConfig(prefix, c, file, ext, path)
 }
 
-func LoadConfig[T Configurable](prefix string, c T, file string, ext string, path []string) error {
+func LoadConfigModuleWithAdditional[T Configurable](moduleName string, c T, additional map[string]ConfigObject, file string, ext string, path []string) error {
+	for k, v := range additional {
+		c.AddOtherItem(k, v)
+	}
+
+	prefix := getKeyPrefix(moduleName, true)
+	return LoadConfig(prefix, c, file, ext, path)
+}
+
+func LoadConfigWithAdditional[T Configurable](prefix string, c T, additional map[string]ConfigObject, file string, ext string, path []string) error {
+	for k, v := range additional {
+		c.AddOtherItem(k, v)
+	}
+
+	return LoadConfig(prefix, c, file, ext, path)
+}
+
+func LoadConfig[T ConfigObject](prefix string, c T, file string, ext string, path []string) error {
 	var holder *ConfigHolder
 
 	replacer := strings.NewReplacer(".", "_")
@@ -91,12 +136,17 @@ func LoadConfig[T Configurable](prefix string, c T, file string, ext string, pat
 	}
 
 	// Type assertion on type parameter requires conversion to 'any' first
-	sub, ok := any(c).(SubConfigurable)
+	sub, ok := any(c).(Configurable)
 	if ok {
 		oth := sub.GetOthers()
 		if len(oth) > 0 {
-			for _, csub := range oth {
-				setPriorityDefaults(csub, holder, replacer, prefix)
+			for key, csub := range oth {
+				subprefix := key + "."
+				if prefix != "" {
+					subprefix = prefix + "." + key + "."
+				}
+				// subprefix := prefix
+				setPriorityDefaults(csub, holder, replacer, subprefix)
 				holder.Engine.Unmarshal(csub)
 			}
 		}
@@ -116,7 +166,7 @@ func getKeyPrefix(prefix string, ismodule bool) string {
 	return ""
 }
 
-func setPriorityDefaults(c Configurable, holder *ConfigHolder, replacer *strings.Replacer, prefix string) {
+func setPriorityDefaults(c ConfigObject, holder *ConfigHolder, replacer *strings.Replacer, prefix string) {
 	// var v *viper.Viper
 	v := holder.Engine
 
@@ -171,6 +221,23 @@ func setPriorityDefaults(c Configurable, holder *ConfigHolder, replacer *strings
 				if cut {
 					text += fmt.Sprintf("%s   ~ %s = %v -> [RUNTIME-CUT-PREFIX]\n", space, runtimeKeyCut, runtimeValue)
 					v.SetDefault(runtimeKeyCut, runtimeValue)
+				} else {
+					envFileValue := v.Get(envFilekey)
+					if envFileValue != nil {
+						text += fmt.Sprintf("%s %s = %v -> [%s]\n", space, runtimeKey, envFileValue, envFilekey)
+						v.SetDefault(runtimeKey, envFileValue)
+						if cut {
+							text += fmt.Sprintf("%s   ~ %s = %v -> [%s-CUT-PREFIX]\n", space, runtimeKeyCut, envFileValue, envFilekey)
+							v.SetDefault(runtimeKeyCut, envFileValue)
+						}
+					} else if defValue, ok := defaults[runtimeKey]; ok {
+						text += fmt.Sprintf("%s %s = %v -> [DEFAULTS]\n", space, runtimeKey, defValue)
+						v.SetDefault(runtimeKey, defValue)
+						if cut {
+							text += fmt.Sprintf("%s   ~ %s = %v -> [DEFAULTS-CUT-PREFIX]\n", space, runtimeKeyCut, defValue)
+							v.SetDefault(runtimeKeyCut, defValue)
+						}
+					}
 				}
 			}
 		}

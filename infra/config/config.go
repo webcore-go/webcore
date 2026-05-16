@@ -16,7 +16,7 @@ type Config struct {
 	Kafka    KafkaConfig    `mapstructure:"kafka"`
 	PubSub   PubSubConfig   `mapstructure:"pubsub"`
 	Auth     AuthConfig     `mapstructure:"auth"`
-	Others   map[string]Configurable
+	Others   map[string]ConfigObject
 }
 
 type AppConfig struct {
@@ -176,7 +176,7 @@ type AuthConfig struct {
 }
 
 type AuthSessionConfig struct {
-	Backend     string        `mapstructure:"backend"`      // e.g., "memory", "file", "db", "redis"
+	Backend     string        `mapstructure:"backend"`      // e.g., "cache", "file", "db"
 	ExpiresIn   time.Duration `mapstructure:"expires_in"`   // In seconds
 	RefreshIn   time.Duration `mapstructure:"refresh_in"`   // In seconds
 	ContentType string        `mapstructure:"content_type"` // e.g., "application/json", "application/x-www-form-urlencoded"
@@ -189,16 +189,21 @@ type ModuleConfig struct {
 	BasePath string   `mapstructure:"base_path"`
 }
 
-func (c *Config) GetOthers() map[string]Configurable {
+func (c *Config) GetOthers() map[string]ConfigObject {
 	return c.Others
 }
 
-func (c *Config) AddItem(key string, item Configurable) {
+func (c *Config) AddOtherItem(key string, item ConfigObject) {
+	ConfigAddItem(&c.Others, key, item)
+}
+
+func (c *Config) GetOtherItem(key string) (ConfigObject, bool) {
 	if c.Others == nil {
-		c.Others = make(map[string]Configurable)
+		return nil, false
 	}
 
-	c.Others[key] = item
+	item, ok := c.Others[key]
+	return item, ok
 }
 
 func (c *Config) GetFiberConfig(errorHandler fiber.ErrorHandler) fiber.Config {
