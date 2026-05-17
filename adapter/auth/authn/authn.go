@@ -51,25 +51,23 @@ func (a *AuthN) Install(args ...any) error {
 		return err
 	}
 
-	logger.Info("Library Authentication Storage loaded", "storage", library)
+	logger.Info("Library Authentication Storage loaded")
 
 	authstore := library.(auth.IAuthStore)
 	storeWrapper := auth.NewStoreWrapper(authstore.GetStore())
 
-	/*loader2, e := context.GetDefaultLibraryLoader("authsession")
-	if e != nil {
-		return e
-	}*/
+	var authsession *session.AuthSession
+	loader2, e := context.GetDefaultLibraryLoader("authsession")
+	if e == nil {
+		library2, err := context.LoadSingletonInstance(loader2, context, config)
+		if err != nil {
+			return err
+		}
 
-	// library2, err := context.LoadSingletonInstance(loader2, context, config)
-	library2, err := context.StartDefaultSingletonInstance("authsession", context, config)
-	if err != nil {
-		return err
+		logger.Info("Library Authentication Session Manager loaded", "session", library2)
+
+		authsession = library2.(*session.AuthSession)
 	}
-
-	logger.Info("Library Authentication Session Manager loaded", "session", library2)
-
-	authsession := library2.(*session.AuthSession)
 
 	a.Authenticator = auth.NewAuthenticator(config, a.Validator, storeWrapper, authsession)
 

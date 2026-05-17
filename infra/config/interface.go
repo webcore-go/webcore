@@ -9,6 +9,8 @@ import (
 )
 
 var InstanceViper map[string]*ConfigHolder = make(map[string]*ConfigHolder)
+var defaultConfigName = "config"
+var defaultConfigExt = "yaml"
 
 type ConfigHolder struct {
 	Engine       *viper.Viper
@@ -36,8 +38,13 @@ func ConfigAddItem(others *map[string]ConfigObject, key string, item ConfigObjec
 	(*others)[key] = item
 }
 
+func SetDefaultConfigName(name string, ext string) {
+	defaultConfigName = name
+	defaultConfigExt = ext
+}
+
 func LoadDefaultConfig[T ConfigObject](c T) error {
-	return LoadConfig("", c, "config", "yaml", []string{})
+	return LoadConfig("", c, defaultConfigName, defaultConfigExt, []string{})
 }
 
 func LoadDefaultConfigWithAdditional[T Configurable](c T, additional map[string]ConfigObject) error {
@@ -45,12 +52,12 @@ func LoadDefaultConfigWithAdditional[T Configurable](c T, additional map[string]
 		c.AddOtherItem(k, v)
 	}
 
-	return LoadConfig("", c, "config", "yaml", []string{})
+	return LoadConfig("", c, defaultConfigName, defaultConfigExt, []string{})
 }
 
 func LoadDefaultConfigModule[T ConfigObject](moduleName string, c T) error {
 	prefix := getKeyPrefix(moduleName, true)
-	return LoadConfig(prefix, c, "config", "yaml", []string{})
+	return LoadConfig(prefix, c, defaultConfigName, defaultConfigExt, []string{})
 }
 
 func LoadDefaultConfigModuleWithAdditional[T Configurable](moduleName string, c T, additional map[string]ConfigObject) error {
@@ -59,7 +66,7 @@ func LoadDefaultConfigModuleWithAdditional[T Configurable](moduleName string, c 
 	}
 
 	prefix := getKeyPrefix(moduleName, true)
-	return LoadConfig(prefix, c, "config", "yaml", []string{})
+	return LoadConfig(prefix, c, defaultConfigName, defaultConfigExt, []string{})
 }
 
 func LoadConfigModule[T ConfigObject](moduleName string, c T, file string, ext string, path []string) error {
