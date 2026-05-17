@@ -136,7 +136,7 @@ func LoadConfig[T ConfigObject](prefix string, c T, file string, ext string, pat
 	}
 
 	// Set defaults with priority to environment variables
-	setPriorityDefaults(c, holder, replacer, prefix)
+	setPriorityDefaults(c, holder, replacer, prefix, false)
 
 	if err := holder.Engine.Unmarshal(c); err != nil {
 		return err
@@ -153,7 +153,7 @@ func LoadConfig[T ConfigObject](prefix string, c T, file string, ext string, pat
 					subprefix = prefix + "." + key + "."
 				}
 				// subprefix := prefix
-				setPriorityDefaults(csub, holder, replacer, subprefix)
+				setPriorityDefaults(csub, holder, replacer, subprefix, true)
 				holder.Engine.Unmarshal(csub)
 			}
 		}
@@ -173,7 +173,7 @@ func getKeyPrefix(prefix string, ismodule bool) string {
 	return ""
 }
 
-func setPriorityDefaults(c ConfigObject, holder *ConfigHolder, replacer *strings.Replacer, prefix string) {
+func setPriorityDefaults(c ConfigObject, holder *ConfigHolder, replacer *strings.Replacer, prefix string, subprefix bool) {
 	// var v *viper.Viper
 	v := holder.Engine
 
@@ -228,7 +228,7 @@ func setPriorityDefaults(c ConfigObject, holder *ConfigHolder, replacer *strings
 				if cut {
 					text += fmt.Sprintf("%s   ~ %s = %v -> [RUNTIME-CUT-PREFIX]\n", space, runtimeKeyCut, runtimeValue)
 					v.SetDefault(runtimeKeyCut, runtimeValue)
-				} else {
+				} else if subprefix {
 					envFileValue := v.Get(envFilekey)
 					if envFileValue != nil {
 						text += fmt.Sprintf("%s %s = %v -> [%s]\n", space, runtimeKey, envFileValue, envFilekey)
