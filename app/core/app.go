@@ -51,6 +51,7 @@ func NewApp(ctx context.Context, cfg *config.Config, loaders map[string]LibraryL
 			Web:      nil,
 			Root:     nil,
 			EventBus: NewEventBus(),
+			Hook:     NewHook(),
 		},
 		ModuleManager:  manModule,
 		LibraryManager: manLibrary,
@@ -84,6 +85,9 @@ func (a *App) Start() error {
 	// Setup routes
 	a.setupRoutes()
 
+	// call start hooks
+	a.runStartHook()
+
 	// Start server
 	addr := fmt.Sprintf("%s:%d", a.Context.Config.Server.Host, a.Context.Config.Server.Port)
 	log.Printf("Server starting on %s", addr)
@@ -93,6 +97,9 @@ func (a *App) Start() error {
 
 // Stop stops the application gracefully
 func (a *App) Stop() error {
+	// call destroy hooks
+	a.runDestroyHook()
+
 	// Unload all libraries
 	a.LibraryManager.Destroy()
 
@@ -166,6 +173,14 @@ func (a *App) setupRoutes() {
 	})
 
 	// Module routes will be automatically added by the registry
+}
+
+func (a *App) runStartHook() {
+	a.Context.RunHook("start")
+}
+
+func (a *App) runDestroyHook() {
+	a.Context.RunHook("destroy")
 }
 
 // GetModuleManager returns the central registry instance

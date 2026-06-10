@@ -19,6 +19,7 @@ type AppContext struct {
 	Root        fiber.Router
 	AuthHandler fiber.Handler
 	EventBus    *EventBus
+	Hook        *Hook
 }
 
 func (a *AppContext) Start() error {
@@ -164,6 +165,10 @@ func (a *AppContext) Destroy() error {
 	}
 
 	return nil
+}
+
+func (a *AppContext) RunHook(pos string) {
+	a.Hook.RunFunc(pos)
 }
 
 func (a *AppContext) StartSingletonInstance(name string, args ...any) (port.Library, error) {
