@@ -6,7 +6,9 @@ type Hook struct {
 }
 
 func NewHook() *Hook {
-	return &Hook{}
+	return &Hook{
+		entries: make(map[string][]HookFunc),
+	}
 }
 
 func (h *Hook) AddFunc(pos string, fn HookFunc) {
