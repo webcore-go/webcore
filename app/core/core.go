@@ -167,6 +167,10 @@ func (a *AppContext) Destroy() error {
 	return nil
 }
 
+func (a *AppContext) AddHook(pos string, fn HookFunc) {
+	a.Hook.AddFunc(pos, fn)
+}
+
 func (a *AppContext) RunHook(pos string) {
 	a.Hook.RunFunc(pos)
 }
