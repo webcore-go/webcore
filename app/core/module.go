@@ -45,6 +45,13 @@ type Module interface {
 	Destroy() error
 }
 
+type ModuleExtended interface {
+	Module
+
+	// PostInit call after Init
+	PostInit(ctx *AppContext) error
+}
+
 type ModuleRoute struct {
 	Method   string
 	Path     string
@@ -194,6 +201,14 @@ func (r *ModuleManager) InitializeModulesWithDependencies() error {
 
 		if err := loadedModule.Module.Init(r.context); err != nil {
 			return fmt.Errorf("initialize module '%s': %v", moduleName, err)
+		}
+	}
+
+	for moduleName, module := range r.modules {
+		if modext, ok := module.(ModuleExtended); ok {
+			if err := modext.PostInit(r.context); err != nil {
+				return fmt.Errorf("post initialize module '%s': %v", moduleName, err)
+			}
 		}
 	}
 
