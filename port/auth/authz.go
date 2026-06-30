@@ -94,6 +94,8 @@ func (r1 *ResourceInfoRBAC) IsUserPermitted(user IUserAuthInfo) error {
 
 	logger.DebugJson("RBAC permission check", map[string]any{
 		"user":            rbacUser,
+		"path":            r1.Path,
+		"method":          r1.Method,
 		"permitted_roles": r1.PermittedRoles,
 	})
 
@@ -148,6 +150,8 @@ func (r2 *ResourceInfoABAC) IsUserPermitted(user IUserAuthInfo) error {
 
 	logger.DebugJson("ABAC permission check", map[string]any{
 		"user":               abacUser,
+		"path":               r2.Path,
+		"method":             r2.Method,
 		"permitted_policies": r2.PermittedPolicies,
 	})
 
