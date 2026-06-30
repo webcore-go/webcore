@@ -3,6 +3,8 @@ package auth
 import (
 	"fmt"
 	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/webcore-go/webcore/infra/logger"
 	"github.com/webcore-go/webcore/port"
@@ -90,6 +92,11 @@ func (r1 *ResourceInfoRBAC) IsUserPermitted(user IUserAuthInfo) error {
 		return fmt.Errorf("RBAC properties not found in user")
 	}
 
+	logger.DebugJson("RBAC permission check", map[string]any{
+		"user_roles":      rbacUser.Roles,
+		"permitted_roles": r1.PermittedRoles,
+	})
+
 	// Check if any of the user's roles are in the permitted set.
 	for _, userRole := range rbacUser.Roles {
 		if slices.Contains(r1.PermittedRoles, userRole) {
@@ -139,6 +146,11 @@ func (r2 *ResourceInfoABAC) IsUserPermitted(user IUserAuthInfo) error {
 		return fmt.Errorf("RBAC properties not found in user")
 	}
 
+	logger.DebugJson("ABAC permission check", map[string]any{
+		"user_policies":      abacUser.Policies,
+		"permitted_policies": r2.PermittedPolicies,
+	})
+
 	// Check if any of the user's roles are in the permitted set.
 	for _, userPolicy := range abacUser.Policies {
 		if r2.IsAccessGranted(userPolicy, r2.PermittedPolicies) {
@@ -151,6 +163,139 @@ func (r2 *ResourceInfoABAC) IsUserPermitted(user IUserAuthInfo) error {
 }
 
 func (r2 *ResourceInfoABAC) IsAccessGranted(userPolicy PolicyABAC, policies []PolicyABAC) bool {
-	logger.Fatal("ABAC Policy enforcement logic not implemented yet")
+	// Only "Allow" policies can grant access.
+	if userPolicy.Effect != "Allow" {
+		return false
+	}
+
+	for _, permitted := range policies {
+		// Action must match (empty or "*" permits any action).
+		if permitted.Action != "" && permitted.Action != "*" && permitted.Action != userPolicy.Action {
+			continue
+		}
+
+		// All conditions in the permitted policy must be satisfied by the
+		// user policy conditions (AND operator). Each permitted condition is
+		// matched against the user policy condition with the same attribute.
+		if !matchConditions(permitted.Condition, userPolicy.Condition) {
+			continue
+		}
+
+		return true
+	}
+
 	return false
+}
+
+// matchConditions returns true when every required condition is satisfied by a
+// user policy condition that shares the same attribute and operator, and whose
+// value satisfies the operator comparison against the required value.
+func matchConditions(required []ConditionABAC, user []ConditionABAC) bool {
+	// No requirements means unrestricted.
+	if len(required) == 0 {
+		return true
+	}
+
+	for _, req := range required {
+		satisfied := false
+		for _, u := range user {
+			if u.Attribute != req.Attribute {
+				continue
+			}
+			if compareValues(req.Operator, u.Value, req.Value) {
+				satisfied = true
+				break
+			}
+		}
+		if !satisfied {
+			return false
+		}
+	}
+
+	return true
+}
+
+// compareValues evaluates the operator for the given user value against the
+// required value. Returns true when the user value satisfies the requirement.
+func compareValues(operator string, userValue any, requiredValue any) bool {
+	switch operator {
+	case "", "==", "eq":
+		return fmt.Sprintf("%v", userValue) == fmt.Sprintf("%v", requiredValue)
+	case "!=", "ne":
+		return fmt.Sprintf("%v", userValue) != fmt.Sprintf("%v", requiredValue)
+	case ">", "gt":
+		return toFloat(userValue) > toFloat(requiredValue)
+	case ">=", "ge":
+		return toFloat(userValue) >= toFloat(requiredValue)
+	case "<", "lt":
+		return toFloat(userValue) < toFloat(requiredValue)
+	case "<=", "le":
+		return toFloat(userValue) <= toFloat(requiredValue)
+	case "in":
+		for _, v := range toSlice(requiredValue) {
+			if fmt.Sprintf("%v", userValue) == fmt.Sprintf("%v", v) {
+				return true
+			}
+		}
+		return false
+	case "contains":
+		return containsValue(requiredValue, userValue)
+	default:
+		return fmt.Sprintf("%v", userValue) == fmt.Sprintf("%v", requiredValue)
+	}
+}
+
+func toFloat(v any) float64 {
+	switch n := v.(type) {
+	case int:
+		return float64(n)
+	case int8:
+		return float64(n)
+	case int16:
+		return float64(n)
+	case int32:
+		return float64(n)
+	case int64:
+		return float64(n)
+	case uint:
+		return float64(n)
+	case uint8:
+		return float64(n)
+	case uint16:
+		return float64(n)
+	case uint32:
+		return float64(n)
+	case uint64:
+		return float64(n)
+	case float32:
+		return float64(n)
+	case float64:
+		return n
+	default:
+		f, _ := strconv.ParseFloat(fmt.Sprintf("%v", v), 64)
+		return f
+	}
+}
+
+func toSlice(v any) []any {
+	if s, ok := v.([]any); ok {
+		return s
+	}
+	return []any{v}
+}
+
+func containsValue(container any, target any) bool {
+	switch c := container.(type) {
+	case []any:
+		for _, v := range c {
+			if fmt.Sprintf("%v", v) == fmt.Sprintf("%v", target) {
+				return true
+			}
+		}
+		return false
+	case string:
+		return strings.Contains(c, fmt.Sprintf("%v", target))
+	default:
+		return fmt.Sprintf("%v", container) == fmt.Sprintf("%v", target)
+	}
 }
