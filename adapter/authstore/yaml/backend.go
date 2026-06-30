@@ -140,14 +140,39 @@ func (y *AuthStoreYAML) GetResourceInfo(method string, path string) (auth.IResou
 		return nil, fmt.Errorf("File access.yaml gagal dimuat")
 	}
 
-	for _, info := range y.Storage.Resources {
-		infoPath := info.GetPath()
-		cleanedInfoPath := y.cleanPath(infoPath)
+	var bestMatch auth.IResourceInfo
+	var bestLen int
 
-		if method == info.GetMethod() && strings.HasPrefix(path, cleanedInfoPath) {
-			return info, nil
+	for _, info := range y.Storage.Resources {
+		if method != info.GetMethod() {
+			continue
+		}
+
+		cleanedInfoPath := y.cleanPath(info.GetPath())
+
+		// Hanya cocok bila cleanedInfoPath adalah segmen path yang valid
+		// (exact match atau diikuti '/' sebagai batas segmen) agar prefix
+		// seperti /api/v1/posyandu tidak keliru menangkap /api/v1/posyandu-batch.
+		if !pathHasPrefix(path, cleanedInfoPath) {
+			continue
+		}
+
+		// Ambil kecocokan yang paling spesifik (panjang path terpanjang)
+		// agar path yang lebih dalam tidak tertimpa oleh prefix-nya.
+		if len(cleanedInfoPath) > bestLen {
+			bestMatch = info
+			bestLen = len(cleanedInfoPath)
 		}
 	}
 
-	return nil, nil
+	return bestMatch, nil
+}
+
+// pathHasPrefix melaporkan apakah prefix adalah segmen awal yang valid dari path:
+// prefix == path (exact), atau prefix berakhir di batas segmen (diikuti '/').
+func pathHasPrefix(path, prefix string) bool {
+	if prefix == "" || !strings.HasPrefix(path, prefix) {
+		return false
+	}
+	return len(path) == len(prefix) || path[len(prefix)] == '/' || strings.HasSuffix(prefix, "/")
 }
