@@ -172,7 +172,10 @@ func (a *App) setupRoutes() {
 		})
 	})
 
-	// Module routes will be automatically added by the registry
+	// Register module routes, sorted by path priority so that static routes
+	// (e.g. "/job/batch") are registered before parameterised ones
+	// (e.g. "/job/:id") and are therefore matched first.
+	RegisterRoutes(a.ModuleManager.GetRoutes())
 }
 
 func (a *App) runStartHook() {
