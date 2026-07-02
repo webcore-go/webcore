@@ -138,21 +138,31 @@ func (a *AppContext) Start() error {
 	}
 
 	// Initialize PubSub if configured
-	if a.Config.PubSub.ProjectID != "" && a.Config.PubSub.Topic != "" {
-		// a.SetupPubSub("default", a.Config.PubSub)
-		loader, _ := libmanager.GetLoader("pubsub") // tidak perlu error kalau library tidak ditemukan
-		// loader, ok := libmanager.GetLoader("pubsub")
-		// if !ok {
-		// 	return fmt.Errorf("LibraryLoader 'pubsub' tidak ditemukan")
-		// }
+	if a.Config.PubSub.Driver != "" {
+		if a.Config.PubSub.Driver != "gpubsub" {
+			_, ok := a.Config.GetOtherItem(a.Config.PubSub.Driver)
+			if ok {
+				loader, _ := libmanager.GetLoader("pubsub") // tidak perlu error kalau library tidak ditemukan
+				if loader != nil {
+					// _, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.PubSub)
+					// if err != nil {
+					// 	return err
+					// }
 
-		if loader != nil {
-			_, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.PubSub)
-			if err != nil {
-				return err
+					logger.Info("Library PubSub loaded", "Driver", a.Config.PubSub.Driver)
+				}
 			}
+		} else if a.Config.PubSub.ProjectID != "" && a.Config.PubSub.Topic != "" {
+			// a.SetupPubSub("default", a.Config.PubSub)
+			loader, _ := libmanager.GetLoader("pubsub") // tidak perlu error kalau library tidak ditemukan
+			if loader != nil {
+				// _, err := libmanager.LoadSingletonFromLoader(loader, a.Context, a.Config.PubSub)
+				// if err != nil {
+				// 	return err
+				// }
 
-			logger.Info("Library PubSub loaded", "Topic", a.Config.PubSub.Topic)
+				logger.Info("Library PubSub loaded", "Driver", a.Config.PubSub.Driver, "Project", a.Config.PubSub.ProjectID, "Topic", a.Config.PubSub.Topic)
+			}
 		}
 	}
 

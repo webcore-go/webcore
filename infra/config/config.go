@@ -133,6 +133,7 @@ type GoogleCredential struct {
 }
 
 type PubSubConfig struct {
+	Driver          string            `mapstructure:"driver"` // gpubsub, rabbitmq, awspubsub
 	ProjectID       string            `mapstructure:"project_id"`
 	Subscription    string            `mapstructure:"subscription"`
 	Topic           string            `mapstructure:"topic"`
