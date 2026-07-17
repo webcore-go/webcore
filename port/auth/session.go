@@ -22,7 +22,7 @@ type IAuthSessionStore interface {
 
 type ISessionStore interface {
 	Save(loginInfo *UserLoginInfo) error
-	Refresh(oldAccessToken string, loginInfo *UserLoginInfo) error
+	Refresh(oldAccessToken string, oldRefreshToken string, loginInfo *UserLoginInfo, refreshIn time.Duration) error
 	Delete(loginInfo *UserLoginInfo) error
 	GetByAccessToken(accessToken string) (*UserLoginInfo, error)
 	GetByRefreshToken(refreshToken string) (*UserLoginInfo, error)
