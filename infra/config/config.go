@@ -177,12 +177,13 @@ type AuthConfig struct {
 }
 
 type AuthSessionConfig struct {
-	Backend     string        `mapstructure:"backend"`      // e.g., "cache", "file", "db"
-	ExpiresIn   time.Duration `mapstructure:"expires_in"`   // In seconds
-	RefreshIn   time.Duration `mapstructure:"refresh_in"`   // In seconds
-	ContentType string        `mapstructure:"content_type"` // e.g., "application/json", "application/x-www-form-urlencoded"
-	UsernameKey string        `mapstructure:"username_key"`
-	PasswordKey string        `mapstructure:"password_key"`
+	Backend      string        `mapstructure:"backend"`      // e.g., "cache", "file", "db"
+	ExpiresIn    time.Duration `mapstructure:"expires_in"`   // In seconds
+	RefreshIn    time.Duration `mapstructure:"refresh_in"`   // In seconds
+	ContentType  string        `mapstructure:"content_type"` // e.g., "application/json", "application/x-www-form-urlencoded"
+	UsernameKey  string        `mapstructure:"username_key"`
+	PasswordKey  string        `mapstructure:"password_key"`
+	PublicClient bool          `mapstructure:"public_client"` // Set True if the client is for Browser, so the refresh token will read from coockie not request body
 }
 
 type ModuleConfig struct {
