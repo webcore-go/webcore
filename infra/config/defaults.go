@@ -51,6 +51,7 @@ func (c *Config) SetDefaults() map[string]any {
 		"auth.session.refresh_in":    "48h", // 2 days
 		"auth.session.content_type":  "application/x-www-form-urlencoded",
 		"auth.session.public_client": false,
+		"auth.session.cookie_name":   "",
 		"auth.session.username_key":  "",
 		"auth.session.password_key":  "",
 		"auth.api_key_header":        "X-API-Key",

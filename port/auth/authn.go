@@ -127,11 +127,17 @@ func (a *Authenticator) GetLoginRequest(ctx *fiber.Ctx) (string, string, error) 
 
 func (a *Authenticator) GetRefreshTokenRequest(ctx *fiber.Ctx) (string, error) {
 	if a.Config.Session.PublicClient {
-		refreshToken := ctx.Cookies("refresh_token")
-		if refreshToken == "" {
-			return "", fmt.Errorf("refresh_token cookie required")
+		cookieName := a.Config.Session.CookieName
+
+		if cookieName == "" {
+			cookieName = "refresh_token"
 		}
-		return refreshToken, nil
+
+		refreshToken := ctx.Cookies(cookieName)
+		if refreshToken != "" {
+			return refreshToken, nil
+		}
+		// Jika tidak di set fallback ke content-type
 	}
 	switch a.Config.Session.ContentType {
 	case "application/x-www-form-urlencoded":

@@ -51,6 +51,7 @@ func (c *Config) SetEnvBindings() map[string]string {
 		"auth.session.refresh_in":    "AUTH_SESSION_REFRESH_IN",
 		"auth.session.content_type":  "AUTH_SESSION_CONTENT_TYPE",
 		"auth.session.public_client": "AUTH_SESSION_PUBLIC_CLIENT",
+		"auth.session.cookie_name":   "AUTH_SESSION_COOKIE_NAME",
 		"auth.session.username_key":  "AUTH_SESSION_USERNAME_KEY",
 		"auth.session.password_key":  "AUTH_SESSION_PASSWORD_KEY",
 		"auth.api_key_header":        "AUTH_API_KEY_HEADER",

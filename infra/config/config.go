@@ -184,6 +184,7 @@ type AuthSessionConfig struct {
 	UsernameKey  string        `mapstructure:"username_key"`
 	PasswordKey  string        `mapstructure:"password_key"`
 	PublicClient bool          `mapstructure:"public_client"` // Set True if the client is for Browser, so the refresh token will read from coockie not request body
+	CookieName   string        `mapstructure:"cookie_name"`   // cookie name for refresh_token
 }
 
 type ModuleConfig struct {
