@@ -126,6 +126,19 @@ func (a *Authenticator) GetLoginRequest(ctx *fiber.Ctx) (string, string, error) 
 }
 
 func (a *Authenticator) GetRefreshTokenRequest(ctx *fiber.Ctx) (string, error) {
+	if a.Config.Session.PublicClient {
+		cookieName := a.Config.Session.CookieName
+
+		if cookieName == "" {
+			cookieName = "refresh_token"
+		}
+
+		refreshToken := ctx.Cookies(cookieName)
+		if refreshToken != "" {
+			return refreshToken, nil
+		}
+		// Jika tidak di set fallback ke content-type
+	}
 	switch a.Config.Session.ContentType {
 	case "application/x-www-form-urlencoded":
 		refreshToken := ctx.FormValue("refresh_token")

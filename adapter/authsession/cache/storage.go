@@ -66,7 +66,9 @@ func (m *MemoryCacheSessionStore) Delete(loginInfo *auth.UserLoginInfo) error {
 	return m.save(loginInfo, 1*time.Second, 1*time.Second)
 }
 
-func (m *MemoryCacheSessionStore) Refresh(oldAccessToken string, loginInfo *auth.UserLoginInfo) error {
+// Gunakan expiration (refreshIn) yang lama untuk Refresh Token,
+// jika generate baru maka refresh token tidak pernah invalidate dan dengan begitu user akan selalu bisa login selamanya (jika tidak logout manual)
+func (m *MemoryCacheSessionStore) Refresh(oldAccessToken string, oldRefreshToken string, loginInfo *auth.UserLoginInfo, refreshIn time.Duration) error {
 	if loginInfo == nil {
 		return nil
 	}
@@ -75,14 +77,20 @@ func (m *MemoryCacheSessionStore) Refresh(oldAccessToken string, loginInfo *auth
 	memkey0 := "authsess_at_" + oldAccessToken
 	m.Memory.Set(memkey0, *loginInfo, 1*time.Second)
 
-	return m.Save(loginInfo)
+	// Segera buat expired Refresh Token lama
+	memkey1 := "authsess_rt_" + oldRefreshToken
+	m.Memory.Set(memkey1, *loginInfo, 1*time.Second)
+
+	accessTokenExp := loginInfo.ExpiresIn + 60*time.Second
+
+	return m.save(loginInfo, accessTokenExp, refreshIn)
 }
 
 func (m *MemoryCacheSessionStore) GetByAccessToken(accessToken string) (*auth.UserLoginInfo, error) {
 	var value auth.UserLoginInfo
 	memkey1 := "authsess_at_" + accessToken
 	if ok := m.Memory.Get(memkey1, &value); !ok {
-		return nil, fmt.Errorf("Gagal menyimpan Login Info di Cache Memory")
+		return nil, fmt.Errorf("Gagal Mengambil Login Info dari Cache Memory")
 	}
 
 	return &value, nil
@@ -92,7 +100,7 @@ func (m *MemoryCacheSessionStore) GetByRefreshToken(refreshToken string) (*auth.
 	var value auth.UserLoginInfo
 	memkey2 := "authsess_rt_" + refreshToken
 	if ok := m.Memory.Get(memkey2, &value); !ok {
-		return nil, fmt.Errorf("Gagal menyimpan Login Info di Cache Memory")
+		return nil, fmt.Errorf("Gagal Mengambil Login Info dari Cache Memory")
 	}
 
 	return &value, nil
@@ -103,7 +111,7 @@ func (m *MemoryCacheSessionStore) GetByUsername(username string) (*auth.UserLogi
 	memkey2 := "authsess_usr_" + username
 	logger.Debug("Cek User sudah punya session", "user", username)
 	if ok := m.Memory.Get(memkey2, &value); !ok {
-		return nil, fmt.Errorf("Gagal menyimpan Login Info di Cache Memory")
+		return nil, fmt.Errorf("Gagal Mengambil Login Info dari Cache Memory")
 	}
 
 	return &value, nil
